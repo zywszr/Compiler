@@ -52,7 +52,7 @@ public class ScopeBuilder {
                 if (!curScope.addItem(childnode.id, classType)) {
                     throw new ReDefinedError(childnode.pos);
                 }
-            } else if (childnode instanceof FunctionDefNode) { // ClassName and FunctionName can be defined
+            } else if (childnode instanceof FunctionDefNode || childnode instanceof ConstructFuncNode) { // ClassName and FunctionName can be defined
                 childnode.belong = curScope;
                 FuncTypeDef funcType = new FuncTypeDef((VarTypeDef) childnode.type);
                 LocalScope<TypeDef> childScope = Scope.newLocalScope(curScope);
@@ -71,6 +71,8 @@ public class ScopeBuilder {
                 scopeBuild(curScope, childnode);
                 if (curScope instanceof ClassScope) {
                     if (!curScope.addItem(childnode.id, childnode.type)) {
+              //          System.out.println(childnode.pos.line);
+              //          System.out.println(childnode.pos.column);
                         throw new ReDefinedError(childnode.pos);
                     }/* else {
                         System.out.println(childnode.id);
