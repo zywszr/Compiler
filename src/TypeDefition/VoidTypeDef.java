@@ -12,4 +12,8 @@ public class VoidTypeDef extends SimpleTypeDef {
     @Override public boolean equals(TypeDef other) {
         return (other instanceof VoidTypeDef);
     }
+
+    @Override public Long getSize() {
+        return 0L;
+    }
 }

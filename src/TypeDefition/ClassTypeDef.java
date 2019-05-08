@@ -1,19 +1,51 @@
 package TypeDefition;
 
+import ScopeClass.Scope;
+
 import java.util.*;
 
 public class ClassTypeDef extends TypeDef {
     Map <String, TypeDef> objects;
+    HashMap <String, Long> varIdx;
+    Scope<TypeDef> blg;
+    Long classSize;
+    String className;
 
     public ClassTypeDef() {
+        blg = null;
         objects = new HashMap<>();
+        varIdx = new HashMap<>();
+        classSize = 0L;
+        className = "";
     }
 
-    public ClassTypeDef(Map <String, TypeDef> objectList) {
+    public ClassTypeDef(Map <String, TypeDef> objectList, ArrayList <String> _varIdx, Scope<TypeDef> _blg, String _className) {
         objects = new HashMap<>();
         for (Map.Entry <String, TypeDef> iter : objectList.entrySet()) {
             objects.put(iter.getKey(), iter.getValue());
         }
+        classSize = 0L;
+        varIdx = new HashMap<>();
+        for (int i = 0 ; i < _varIdx.size() ; ++ i) {
+            // System.out.print("_varIdx i:");
+            // System.out.println(_varIdx.get(i));
+            varIdx.put(_varIdx.get(i), classSize);
+            classSize += 1;
+        }
+        blg = _blg;
+        className = _className;
+    }
+
+    public String getClassName() {
+        return className;
+    }
+
+    @Override public Long getSize() {
+        return classSize;
+    }
+
+    public String getScopeName() {
+        return blg.getName();
     }
 
     public void insertObject(String key, TypeDef typ) {
@@ -34,6 +66,16 @@ public class ClassTypeDef extends TypeDef {
 
     public boolean contain(String str) {
         return objects.containsKey(str);
+    }
+
+    public boolean containVar(String var) {
+        return varIdx.containsKey(var);
+    }
+
+    public Long getVarIdx(String var) {
+        // System.out.print("getVarIdx");
+        // System.out.println(var);
+        return varIdx.get(var);
     }
 
     public TypeDef getEntity(String str) {

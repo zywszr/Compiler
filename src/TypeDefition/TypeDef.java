@@ -29,4 +29,6 @@ public abstract class TypeDef {
     }
 */
     public abstract boolean equals(TypeDef other);
+
+    public abstract Long getSize();
 }

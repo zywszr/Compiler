@@ -1,6 +1,7 @@
 
 package FrontEnd;
 
+import OprandClass.Oprand;
 import ScopeClass.Scope;
 import TypeDefition.TypeDef;
 
@@ -9,21 +10,51 @@ import java.util.ArrayList;
 
 public abstract class Node {
     String id;
+    String reName;
     TypeDef type;
-    String inClass;
+    String inClass; // any use?
+    String strLiter;
+    Oprand reg;
     PositionDef pos;
     List<Node> childs;
     Scope<TypeDef> belong;
+    boolean unique;
+    boolean willUse;
+    boolean leftVal;
     Node() {
         id = "";
-        inClass = "";
+        reName = "";
         type = TypeDef.build("void");
+        inClass = "";
+        strLiter = "";
+        reg = null;
         pos  = null;
-        childs = new ArrayList<Node>();
+        childs = new ArrayList<>();
         belong = null;
+        unique = false;
+        willUse = true;
+        leftVal = false;
     }
     public void accept(ASTVisitor visitor) throws Exception {
         visitor.visit(this);
+    }
+    public void setUnique() {
+        unique = true;
+    }
+    public boolean isUnique() {
+        return unique;
+    }
+    public void setNotUse() {
+        willUse = false;
+    }
+    public boolean isWillUse() {
+        return willUse;
+    }
+    public void setLeftVal() {
+        leftVal = true;
+    }
+    public boolean isLeftVal() {
+        return leftVal;
     }
 }
 

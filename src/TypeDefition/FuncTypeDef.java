@@ -47,4 +47,8 @@ public class FuncTypeDef extends TypeDef {
     public VarTypeDef getPara(int k) {
         return paraList.get(k);
     }
+
+    @Override public Long getSize() {
+        return 0L; // wait to change
+    }
 }

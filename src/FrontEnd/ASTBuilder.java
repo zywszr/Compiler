@@ -12,14 +12,12 @@ public class ASTBuilder extends MxStarBaseVisitor <Node> {
         for (int i = 0 ; i < ctx.getChildCount() ; ++ i) {
             ret.childs.add(visit(ctx.getChild(i)));
         }
-       // System.out.println(23);
         return ret;
     }
 
     @Override public ClassDefNode visitClassDef(MxStarParser.ClassDefContext ctx) {
         ClassDefNode ret = new ClassDefNode();
         ret.id = ctx.Identifier().getText();
-      //  ret.type.build(ret.id);
         ret.childs.addAll(visit(ctx.classBody()).childs);
         ret.pos = new PositionDef(ctx.start);
         return ret;
@@ -29,7 +27,6 @@ public class ASTBuilder extends MxStarBaseVisitor <Node> {
         ClassDefNode ret = new ClassDefNode();
         for (MxStarParser.NoAssignVarDecContext p : ctx.noAssignVarDec()) {
             ret.childs.add(visit(p));
-            //System.out.println(p.getText());
         }
         for (MxStarParser.FunctionDefContext p : ctx.functionDef()) {
             ret.childs.add(visit(p));
@@ -44,7 +41,6 @@ public class ASTBuilder extends MxStarBaseVisitor <Node> {
         VarDefNode tmp = new VarDefNode();
         TerminalNode end = ctx.paraDec().Identifier();
         tmp.id = end.getText();
-     //   System.out.println(tmp.id);
         tmp.type = ret.type;
         tmp.pos = new PositionDef(end.getSymbol());
         ret.childs.add(tmp);
@@ -53,7 +49,6 @@ public class ASTBuilder extends MxStarBaseVisitor <Node> {
             tmp = new VarDefNode();
             end = ctx.Identifier(i);
             tmp.id = end.getText();
-     //       System.out.println(tmp.id);
             tmp.type = ret.type;
             tmp.pos = new PositionDef(end.getSymbol());
             ret.childs.add(tmp);
@@ -154,8 +149,6 @@ public class ASTBuilder extends MxStarBaseVisitor <Node> {
     @Override public BlockStateNode visitBlock(MxStarParser.BlockContext ctx) {
         BlockStateNode ret = new BlockStateNode();
         for (int i = 1 ; i < ctx.getChildCount() - 1 ; ++ i) {
-        //    System.out.print("Block");
-        //    System.out.println(ctx.getChild(i).getText());
             ret.childs.add(visit(ctx.getChild(i)));
         }
         ret.pos = new PositionDef(ctx.start);
@@ -191,17 +184,16 @@ public class ASTBuilder extends MxStarBaseVisitor <Node> {
         else ret.childs.add(new EmptyExprNode());
         if (ctx.loopExp != null) ret.childs.add(visit(ctx.loopExp));
         else ret.childs.add(new EmptyExprNode());
+        ret.childs.add(visit(ctx.statement()));
         ret.pos = new PositionDef(ctx.start);
         return ret;
     }
 
     @Override public ReturnStateNode visitReturnState(MxStarParser.ReturnStateContext ctx) {
         ReturnStateNode ret = new ReturnStateNode();
-      //  System.out.println("RETURN");
         ret.id = ctx.Return().getText();
         if (ctx.expression() != null) {
             ret.childs.add(visit(ctx.expression()));
-      //      System.out.println("return");
         }
         ret.pos = new PositionDef(ctx.start);
         return ret;
@@ -358,16 +350,25 @@ public class ASTBuilder extends MxStarBaseVisitor <Node> {
 
     @Override public NewVarNode visitNewVar(MxStarParser.NewVarContext ctx) {
         NewVarNode ret = new NewVarNode();
-        ret.type = TypeDef.build(ctx.noArrayTypeId().getText());
-        int dim = 0;
+        if (ctx.Identifier() != null) {
+            ret.type = TypeDef.build(ctx.Identifier().getText());
+        } else {
+            ret.type = TypeDef.build(ctx.noArrayTypeId().getText());
+        }
+            int dim = 0;
         String text = ctx.getText();
         for (int i = 0 ; i < text.length() ; ++ i) {
             if (text.charAt(i) == '[') ++ dim;
         }
+
         int siz = ctx.expression().size();
-        for (int i = 0 ; i < dim ; ++ i) {
-            if (i < siz) ret.childs.add(visit(ctx.expression(i)));
-            else ret.childs.add(new EmptyExprNode());
+        for (int i = dim - 1 ; i >= 0 ; -- i) {
+            NewVarNode tmp = new NewVarNode();
+            if (i < siz) tmp.childs.add(visit(ctx.expression(i)));
+            else tmp.childs.add(new EmptyExprNode());
+            tmp.childs.add(ret);
+            tmp.type = new ArrayTypeDef((VarTypeDef) ret.type);
+            ret = tmp;
         }
         ret.pos = new PositionDef(ctx.start);
         return ret;
@@ -462,8 +463,8 @@ public class ASTBuilder extends MxStarBaseVisitor <Node> {
             else if (i + 1 < tmp.length()) {
                 switch (tmp.charAt(i + 1)) {
                     case '\\': ret.id += '\\'; break;
-                    case 'n': ret.id += '\n'; break;
-                    case 't': ret.id += '\t'; break;
+                    case 'n' : ret.id += '\n'; break;
+                    case 't' : ret.id += '\t'; break;
                     case '\"': ret.id += '\"'; break;
                 }
                 ++ i;

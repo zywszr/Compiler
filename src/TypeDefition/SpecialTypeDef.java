@@ -11,6 +11,10 @@ public abstract class SpecialTypeDef extends SingleTypeDef {
         return belong;
     }
 
+    public Long getClassSize() {
+        return belong.getSize();
+    }
+
     @Override public abstract SpecialTypeDef copy();
 
     @Override public abstract boolean equals(TypeDef other);

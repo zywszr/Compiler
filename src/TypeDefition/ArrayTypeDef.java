@@ -2,7 +2,7 @@ package TypeDefition;
 
 public class ArrayTypeDef extends VarTypeDef {
     VarTypeDef type;
-    FuncTypeDef getSize;
+    FuncTypeDef getArraySize;
 
     public ArrayTypeDef(VarTypeDef typ) {
         type = typ;
@@ -14,7 +14,7 @@ public class ArrayTypeDef extends VarTypeDef {
             tmp = new ArrayTypeDef(tmp);
         }
         type = tmp;
-        getSize = new FuncTypeDef(new IntTypeDef());
+        getArraySize = new FuncTypeDef(new IntTypeDef());
     }
 
     public SingleTypeDef getSingleType() {
@@ -29,7 +29,7 @@ public class ArrayTypeDef extends VarTypeDef {
         return type;
     }
 
-     @Override public ArrayTypeDef copy() {
+    @Override public ArrayTypeDef copy() {
         return new ArrayTypeDef(type);
      }
 
@@ -38,5 +38,9 @@ public class ArrayTypeDef extends VarTypeDef {
             return type.equals(((ArrayTypeDef) other).type);
         }
         return false;
+    }
+
+    @Override public Long getSize() {
+        return 1L;
     }
 }

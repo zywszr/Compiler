@@ -68,10 +68,14 @@ typeId
 ;
 
 noArrayTypeId
+    : simpleTypeId
+    | Identifier
+;
+
+simpleTypeId
     : Bool
     | Int
     | String
-    | Identifier
 ;
 
 varDefList
@@ -91,7 +95,7 @@ condStatement
 ;
 
 loopStatement
-    : While '(' expression ')' statement                                #whileState
+    : While '(' expression ')' statement                                                                    #whileState
     | For '(' (initExp = expression)? ';' (condExp = expression)? ';' (loopExp = expression)? ')' statement #forState
 ;
 
@@ -175,7 +179,7 @@ leftUnaryExpr
 
 newVar
     : noArrayTypeId ('['expression']')+ ('['']')*
-    | noArrayTypeId ('(' ')')?
+    | Identifier ('(' ')')?
 ;
 
 rightUnaryExpr

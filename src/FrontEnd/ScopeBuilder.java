@@ -4,7 +4,7 @@ import ScopeClass.*;
 import TypeDefition.*;
 
 public class ScopeBuilder {
-    public GlobalScope<TypeDef> rootScope = new GlobalScope<>(null, "");
+    public GlobalScope<TypeDef> rootScope = new GlobalScope<>(null, "0");
 
     void initInterType() throws SyntaxError {
         ClassTypeDef stringType = new ClassTypeDef();
@@ -18,7 +18,7 @@ public class ScopeBuilder {
         rootScope.addItem("print", printDef);
 
         FuncTypeDef printlnDef = new FuncTypeDef(new VoidTypeDef(), new StringTypeDef());
-        rootScope.addItem("println", printDef);
+        rootScope.addItem("println", printlnDef);
 
         FuncTypeDef getStringFunc = new FuncTypeDef(new StringTypeDef());
         rootScope.addItem("getString", getStringFunc);
@@ -43,12 +43,11 @@ public class ScopeBuilder {
     void scopeBuild(Scope<TypeDef> curScope, Node curNode) throws SyntaxError {
         curNode.belong = curScope;
         for (int i = 0 ; i < curNode.childs.size() ; ++ i) {
-            //System.out.println(i);
             Node childnode = curNode.childs.get(i);
             if (childnode instanceof ClassDefNode) {
                 ClassScope<TypeDef> childScope = Scope.newClassScope(curScope);
                 scopeBuild(childScope, childnode);
-                ClassTypeDef classType = new ClassTypeDef(childScope.table.getHashMap());
+                ClassTypeDef classType = new ClassTypeDef(childScope.table.getHashMap(), childScope.varIdx, childScope, childnode.id);
                 if (!curScope.addItem(childnode.id, classType)) {
                     throw new ReDefinedError(childnode.pos);
                 }
@@ -64,42 +63,28 @@ public class ScopeBuilder {
                 if (!curScope.addItem(childnode.id, funcType)) {
                     throw new ReDefinedError(childnode.pos);
                 }
-            //    System.out.println("Size:");
-             //   System.out.println(childnode.childs.size());
                 localScopeBuild(childScope, childnode.childs.get(childnode.childs.size() - 1));
             } else if (childnode instanceof VarDefNode) {
                 scopeBuild(curScope, childnode);
                 if (curScope instanceof ClassScope) {
                     if (!curScope.addItem(childnode.id, childnode.type)) {
-              //          System.out.println(childnode.pos.line);
-              //          System.out.println(childnode.pos.column);
                         throw new ReDefinedError(childnode.pos);
-                    }/* else {
-                        System.out.println(childnode.id);
-                    }*/
+                    }
+                    curScope.addVar(childnode.id, childnode.type);
                 }
             } else scopeBuild(curScope, childnode);
         }
     }
 
     void localScopeBuild(LocalScope<TypeDef> curScope, Node curNode) throws SyntaxError {
-       // if (curNode instanceof BlockStateNode)
-       // if (curNode.type instanceof ArrayTypeDef) {
-       //     System.out.println("block{}");
-
-        //}
         curNode.belong = curScope;
         for (int i = 0 ; i < curNode.childs.size() ; ++ i) {
             Node childnode = curNode.childs.get(i);
-        /*    if (childnode == null) {
-                System.out.println(curNode.childs.size());
-            }
-        */    if (childnode instanceof BlockStateNode) {
+           if (childnode instanceof BlockStateNode) {
                 LocalScope<TypeDef> childScope = Scope.newLocalScope(curScope);
                 localScopeBuild(childScope, childnode);
             } else {
                 localScopeBuild(curScope, childnode);
-              //  System.out.println("out");
             }
         }
     }

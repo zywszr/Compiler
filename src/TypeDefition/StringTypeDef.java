@@ -3,6 +3,7 @@ package TypeDefition;
 public class StringTypeDef extends SpecialTypeDef {
     public StringTypeDef() {
         typeId = "string";
+        belong = null;
     }
 
     @Override public StringTypeDef copy() {

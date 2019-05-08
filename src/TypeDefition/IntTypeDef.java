@@ -9,8 +9,7 @@ public class IntTypeDef extends SimpleTypeDef {
         return new IntTypeDef();
     }
 
-    @Override
-    public boolean equals(TypeDef other) {
+    @Override public boolean equals(TypeDef other) {
         return (other instanceof IntTypeDef);
     }
 }

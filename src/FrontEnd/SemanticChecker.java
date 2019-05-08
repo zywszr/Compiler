@@ -2,29 +2,25 @@ package FrontEnd;
 
 import TypeDefition.*;
 import ScopeClass.*;
+import OprandClass.*;
 
 import javafx.util.Pair;
 
-import javax.crypto.spec.OAEPParameterSpec;
-import javax.print.attribute.standard.MediaSize;
-import java.util.Stack;
-
 public class SemanticChecker extends ASTVisitor {
-    GlobalScope<TypeDef> rootScope;
-    ClassScope<TypeDef> curClassSCope;
-    int loopNum;
-    String curClass;
-    //St
-    TypeDef funcRetType;
+    private GlobalScope<TypeDef> rootScope;
+//  private ClassScope<TypeDef> curClassScope;
+    private int loopNum;
+    private String curClass;
+    private TypeDef funcRetType;
 
     public SemanticChecker(GlobalScope<TypeDef> root) {
         rootScope = root;
-        curClassSCope = null;
+//      curClassScope = null;
         loopNum = 0;
         curClass = "";
         funcRetType = null;
     }
-    // without string
+
     boolean checkTypeExist(TypeDef type) {
         if (type instanceof ArrayTypeDef) type = ((ArrayTypeDef)type).getSingleType();
         if (type instanceof SpecialTypeDef) {
@@ -62,6 +58,7 @@ public class SemanticChecker extends ASTVisitor {
             return ((FuncTypeDef)type).getRetType();
         } else {
             if (!(type instanceof VarTypeDef)) throw new NoDefinedVarError(node.pos);
+            node.reName = (checkAddrType(type) ? "A" : "V") + "_" + node.id + "_" + nodeclass.getScopeName();
             return type;
         }
     }
@@ -77,7 +74,6 @@ public class SemanticChecker extends ASTVisitor {
         if (curNode.childs.size() > 0) {
             ExprNode expr = (ExprNode)curNode.childs.get(0);
             if (!curNode.type.equals(expr.type)) {
-                //OpType op = OpType.getOpType("=");
                 if (!AssignOpType.checkExpr(curNode.type, expr.type)) {
                     throw new NoCastExpr(expr.pos);
                 }
@@ -90,19 +86,16 @@ public class SemanticChecker extends ASTVisitor {
                 throw new ReDefinedError(curNode.pos);
             }
         }
+        curNode.reName = (checkAddrType(curNode.type) ? "A" : "V") + "_" + curNode.id + "_" + curScope.getName();
     }
 
     @Override void visit(ClassDefNode curNode) throws Exception {
         curClass = curNode.id;
-        curClassSCope = (ClassScope<TypeDef>)curNode.belong;
-        /*for (int i = 0 ; i < curNode.childs.size() ; ++ i) {
-            Node childNode = curNode.childs.get(i);
-            if (!(childNode instanceof ))
-        }*/
+ //       curClassScope = (ClassScope<TypeDef>)curNode.belong;
         visitChild(curNode);
         curNode.type = rootScope.findItem(curNode.id);
         curClass = "";
-        curClassSCope = null;
+ //       curClassScope = null;
     }
 
     @Override void visit(FunctionDefNode curNode) throws Exception {
@@ -189,6 +182,155 @@ public class SemanticChecker extends ASTVisitor {
             if (op instanceof CompOpType) curNode.type = new BoolTypeDef();
             else curNode.type = left.type;
         } else throw new NoDefinedOpError(curNode.pos);
+
+        if (left.isUnique() && right.isUnique()) {
+            curNode.setUnique();
+            switch (curNode.id) {
+                case "+":
+                    if (left.type instanceof IntTypeDef) {
+                        curNode.reg = new ImmOprand(((ImmOprand)left.reg).getVal() + ((ImmOprand)right.reg).getVal());
+                    } else {
+                        curNode.strLiter = left.strLiter + right.strLiter;
+                    }
+                    break;
+                case "-":
+                    curNode.reg = new ImmOprand(((ImmOprand)left.reg).getVal() - ((ImmOprand)right.reg).getVal());
+                    break;
+                case "*":
+                    curNode.reg = new ImmOprand(((ImmOprand)left.reg).getVal() * ((ImmOprand)right.reg).getVal());
+                    break;
+                case "/":
+                    curNode.reg = new ImmOprand(((ImmOprand)left.reg).getVal() / ((ImmOprand)right.reg).getVal());
+                    break;
+                case "%":
+                    curNode.reg = new ImmOprand(((ImmOprand)left.reg).getVal() % ((ImmOprand)right.reg).getVal());
+                    break;
+                case "<":
+                    if (left.type instanceof StringTypeDef) {
+                        if (left.strLiter.compareTo(right.strLiter) < 0) {
+                            curNode.reg = new ImmOprand(1L);
+                        } else {
+                            curNode.reg = new ImmOprand(0L);
+                        }
+                    } else {
+                        if (((ImmOprand)left.reg).getVal() < ((ImmOprand)right.reg).getVal()) {
+                            curNode.reg = new ImmOprand(1L);
+                        } else {
+                            curNode.reg = new ImmOprand(0L);
+                        }
+                    }
+                    break;
+                case ">":
+                    if (left.type instanceof StringTypeDef) {
+                        if (left.strLiter.compareTo(right.strLiter) > 0) {
+                            curNode.reg = new ImmOprand(1L);
+                        } else {
+                            curNode.reg = new ImmOprand(0L);
+                        }
+                    } else {
+                        if (((ImmOprand)left.reg).getVal() > ((ImmOprand)right.reg).getVal()) {
+                            curNode.reg = new ImmOprand(1L);
+                        } else {
+                            curNode.reg = new ImmOprand(0L);
+                        }
+                    }
+                    break;
+                case "==":
+                    if (left.type instanceof StringTypeDef) {
+                        if (left.strLiter.compareTo(right.strLiter) == 0) {
+                            curNode.reg = new ImmOprand(1L);
+                        } else {
+                            curNode.reg = new ImmOprand(0L);
+                        }
+                    } else {
+                        if (((ImmOprand)left.reg).getVal() == ((ImmOprand)right.reg).getVal()) {
+                            curNode.reg = new ImmOprand(1L);
+                        } else {
+                            curNode.reg = new ImmOprand(0L);
+                        }
+                    }
+                    break;
+                case "!=":
+                    if (left.type instanceof StringTypeDef) {
+                        if (left.strLiter.compareTo(right.strLiter) != 0) {
+                            curNode.reg = new ImmOprand(1L);
+                        } else {
+                            curNode.reg = new ImmOprand(0L);
+                        }
+                    } else {
+                        if (((ImmOprand)left.reg).getVal() != ((ImmOprand)right.reg).getVal()) {
+                            curNode.reg = new ImmOprand(1L);
+                        } else {
+                            curNode.reg = new ImmOprand(0L);
+                        }
+                    }
+                    break;
+                case "<=":
+                    if (left.type instanceof StringTypeDef) {
+                        if (left.strLiter.compareTo(right.strLiter) <= 0) {
+                            curNode.reg = new ImmOprand(1L);
+                        } else {
+                            curNode.reg = new ImmOprand(0L);
+                        }
+                    } else {
+                        if (((ImmOprand)left.reg).getVal() <= ((ImmOprand)right.reg).getVal()) {
+                            curNode.reg = new ImmOprand(1L);
+                        } else {
+                            curNode.reg = new ImmOprand(0L);
+                        }
+                    }
+                    break;
+                case ">=":
+                    if (left.type instanceof StringTypeDef) {
+                        if (left.strLiter.compareTo(right.strLiter) >= 0) {
+                            curNode.reg = new ImmOprand(1L);
+                        } else {
+                            curNode.reg = new ImmOprand(0L);
+                        }
+                    } else {
+                        if (((ImmOprand)left.reg).getVal() >= ((ImmOprand)right.reg).getVal()) {
+                            curNode.reg = new ImmOprand(1L);
+                        } else {
+                            curNode.reg = new ImmOprand(0L);
+                        }
+                    }
+                    break;
+                case "&&":
+                    if ((((ImmOprand)left.reg).getVal() == 1L) && (((ImmOprand)right.reg).getVal() == 1L)) {
+                        curNode.reg = new ImmOprand(1L);
+                    } else {
+                        curNode.reg = new ImmOprand(0L);
+                    }
+                    break;
+                case "||":
+                    if ((((ImmOprand)left.reg).getVal() == 1L) || (((ImmOprand)right.reg).getVal() == 1L)) {
+                        curNode.reg = new ImmOprand(1L);
+                    } else {
+                        curNode.reg = new ImmOprand(0L);
+                    }
+                    break;
+                case "<<":
+                    curNode.reg = new ImmOprand(((ImmOprand)left.reg).getVal() << ((ImmOprand)right.reg).getVal());
+                    break;
+                case ">>":
+                    curNode.reg = new ImmOprand(((ImmOprand)left.reg).getVal() >> ((ImmOprand)right.reg).getVal());
+                    break;
+                case "&":
+                    curNode.reg = new ImmOprand(((ImmOprand)left.reg).getVal() & ((ImmOprand)right.reg).getVal());
+                    break;
+                case "|":
+                    curNode.reg = new ImmOprand(((ImmOprand)left.reg).getVal() | ((ImmOprand)right.reg).getVal());
+                    break;
+                case "^":
+                    curNode.reg = new ImmOprand(((ImmOprand)left.reg).getVal() ^ ((ImmOprand)right.reg).getVal());
+                    break;
+            }
+        }
+    }
+
+    Long getNot(Long a) {
+        if (a > 0L) return 0L;
+        return 1L;
     }
 
     @Override void visit(LUnaryExprNode curNode) throws Exception {
@@ -198,6 +340,23 @@ public class SemanticChecker extends ASTVisitor {
         if (op instanceof SelfOpType && !checkLeftValue(expr)) throw new NotLeftValue(expr.pos);
         if (!op.containsType(expr.type)) throw new NoCastExpr(curNode.pos);
         curNode.type = expr.type;
+        if (expr.isUnique()) {
+            curNode.setUnique();
+            switch (curNode.id) {
+                case "+":
+                    curNode.reg = expr.reg;
+                    break;
+                case "-":
+                    curNode.reg = new ImmOprand(- ((ImmOprand)expr.reg).getVal());
+                    break;
+                case "!":
+                    curNode.reg = new ImmOprand(getNot(((ImmOprand)expr.reg).getVal()));
+                    break;
+                case "~":
+                    curNode.reg = new ImmOprand(~ ((ImmOprand)expr.reg).getVal());
+                    break;
+            }
+        }
     }
 
     @Override void visit(RUnaryExprNode curNode) throws Exception {
@@ -207,12 +366,16 @@ public class SemanticChecker extends ASTVisitor {
         if (op instanceof SelfOpType && !checkLeftValue(expr)) throw new NotLeftValue(expr.pos);
         if (!op.containsType(expr.type)) throw new NoCastExpr(curNode.pos);
         curNode.type = expr.type;
+
     }
 
     @Override void visit(NewVarNode curNode) throws Exception {
-        if (!checkTypeExist(curNode.type)) throw new NoDefinedOpError(curNode.pos);
+        if (curNode.childs.isEmpty()) {
+            if (!checkTypeExist(curNode.type)) throw new NoDefinedOpError(curNode.pos);
+            return;
+        }
         visitChild(curNode);
-        for (int i = 0 ; i < curNode.childs.size() ; ++ i) {
+        /* for (int i = 0 ; i < curNode.childs.size() ; ++ i) {
             ExprNode expr = (ExprNode)(curNode.childs.get(i));
             if (!(expr instanceof EmptyExprNode) && !(expr.type instanceof IntTypeDef)) {
                 throw new NoCastExpr(expr.pos);
@@ -220,6 +383,10 @@ public class SemanticChecker extends ASTVisitor {
         }
         if (curNode.childs.size() > 0) {
             curNode.type = new ArrayTypeDef((VarTypeDef) curNode.type, curNode.childs.size());
+        }*/
+        Node expr = curNode.childs.get(0);
+        if (!(expr instanceof EmptyExprNode) && !(expr.type instanceof IntTypeDef)) {
+            throw new NoCastExpr(expr.pos);
         }
     }
 
@@ -256,21 +423,50 @@ public class SemanticChecker extends ASTVisitor {
 
         visitChild(object);
         curNode.type = typeCheckObj(nodeclass, object);
-        if (curNode.type instanceof OtherTypeDef) ((OtherTypeDef)curNode.type).setBelongClass(nodeclass);
+        if (curNode.type instanceof SpecialTypeDef) {
+            ClassTypeDef tmp = (ClassTypeDef) rootScope.findItem(((OtherTypeDef)curNode.type).getTypeId());
+            ((SpecialTypeDef) curNode.type).setBelongClass(tmp);
+        }
         object.inClass = ((SpecialTypeDef)child.type).getTypeId();
         object.type = curNode.type;
     }
 
+    boolean checkAddrType(TypeDef type) {
+        return (type instanceof ArrayTypeDef) || (type instanceof SpecialTypeDef);
+    }
+
     @Override void visit(VarEleExprNode curNode) throws Exception {
         if (curNode.id.equals("this")) {
-            if (curClass == "") throw new ThisOutOfClass(curNode.pos);
+            if (curClass.equals("")) throw new ThisOutOfClass(curNode.pos);
             curNode.type = new OtherTypeDef(curClass);
             ((OtherTypeDef)curNode.type).setBelongClass((ClassTypeDef)rootScope.findItem(curClass));
+            curNode.reName = curClass + "_" + "this";
             return;
         }
         Pair<Scope<TypeDef>, TypeDef> ret = curNode.belong.matchVarName(curNode.id);
-     //   System.out.println(curNode.id);
         if (ret == null) throw new NoDefinedVarError(curNode.pos);
         curNode.type = ret.getValue();
+        curNode.reName = (checkAddrType(curNode.type) ? "A" : "V") + "_" + curNode.id + "_" + ret.getKey().getName();
+    }
+
+    @Override public void visit(IntLitNode node) throws Exception {
+        node.reg = new ImmOprand(Long.parseLong(node.id));
+        node.setUnique();
+    }
+
+    @Override public void visit(LogLitNode node) throws Exception {
+        if (node.id.equals("true")) node.reg = new ImmOprand(1L);
+        else node.reg = new ImmOprand(0L);
+        node.setUnique();
+    }
+
+    @Override public void visit(NullLitNode node) throws Exception {
+        node.reg = new ImmOprand(0L);
+        node.setUnique();
+    }
+
+    @Override public void visit(StrLitNode node) throws Exception {
+        node.strLiter = node.id;
+        node.setUnique();
     }
 }
