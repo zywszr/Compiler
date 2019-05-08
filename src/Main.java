@@ -54,7 +54,7 @@ public class Main {
         genCode.work();
 
     /*    PrintStream psOld = System.out;
-        System.setOut(new PrintStream(new File("../../桌面/test_lyc.asm")));
+        System.setOut(new PrintStream(new File("test_lyc.asm")));
      */   genCode.print();
         //   System.setOut(psOld);
     }
