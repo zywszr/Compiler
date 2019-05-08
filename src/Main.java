@@ -11,8 +11,8 @@ import java.io.*;
 
 public class Main {
     public static void main (String[] args) throws IOException, Exception {
-        InputStream in = new FileInputStream("test.txt");
-        ANTLRInputStream input = new ANTLRInputStream(in);
+        // InputStream in = new FileInputStream("test.txt");
+        ANTLRInputStream input = new ANTLRInputStream(System.in);
         MxStarLexer lexer = new MxStarLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         MxStarParser parser = new MxStarParser(tokens);
@@ -45,7 +45,7 @@ public class Main {
         IRCorrector correctIR = new IRCorrector(lineIR, buildIR.getTmpVarIdx());
         correctIR.work();
 
-        lineIR.printCode();
+        // lineIR.printCode();
 
         RegisterAllocater allocateReg = new RegisterAllocater(lineIR, correctIR.getTmpVarIdx());
         allocateReg.work();
@@ -56,6 +56,6 @@ public class Main {
     /*    PrintStream psOld = System.out;
         System.setOut(new PrintStream(new File("../../桌面/test_lyc.asm")));
      */   genCode.print();
-     //   System.setOut(psOld);
+        //   System.setOut(psOld);
     }
 }
