@@ -229,6 +229,8 @@ public class IRBuilder extends ASTVisitor {
                 }
             }
         }
+        // System.out.println(curfunc.getName());
+        // System.out.println(curfunc.parameters.size());
 
         if (curlabel != null) {
            addQuad(curlabel, new JumpQuad(JMP, curRetLabel));
@@ -648,7 +650,7 @@ public class IRBuilder extends ASTVisitor {
                     break;
             }
         } else if (node.type instanceof StringTypeDef) {
-            if (node.reg != null) {
+            if (node.reg == null) {
                 node.reg = newTempVar(true);
                 genNewFunc(new ImmOprand(256L), node.reg);
             }
@@ -660,6 +662,7 @@ public class IRBuilder extends ASTVisitor {
             if (rson.id.equals("+")) rson.reg = node.reg;
             visit(rson);
             if (!rson.id.equals("+")) genStrcatFunc(node.reg, rson.reg);
+
         } else if (node.id.equals("=")){
             lson.setLeftVal();
             visit(lson);
@@ -784,6 +787,7 @@ public class IRBuilder extends ASTVisitor {
         addQuad(curlabel, new ArthQuad(MOV, new MemOprand(node.reg, null, null), expr.reg));
 
         if (eleType.childs.isEmpty() && (!(eleType.type instanceof StringTypeDef))) return;
+        if (eleType.childs.get(0) instanceof EmptyExprNode) return;
 
         Oprand i = newTempVar(false);
         addQuad(curlabel, new ArthQuad(MOV, i, new ImmOprand(0L)));
@@ -885,11 +889,11 @@ public class IRBuilder extends ASTVisitor {
             node.reg = newTempVar(checkAddrType(node.type));
         }
         Node child = node.childs.get(0), obj = node.childs.get(1);
+        visit(child);
         if (child.type instanceof ArrayTypeDef) {
             addQuad(curlabel, new ArthQuad(MOV, node.reg, new MemOprand(child.reg, null, null)));
             return;
         }
-        visit(child);
         if (obj instanceof FunEleExprNode) {
             ArrayList <Oprand> params = new ArrayList<>();
             params.add(child.reg);

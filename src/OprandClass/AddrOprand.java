@@ -54,15 +54,19 @@ public class AddrOprand extends Oprand {
 
     public HashSet <Oprand> getUsed() {
         HashSet <Oprand> ret = new HashSet<>();
-        if (base != null) ret.add(base);
-        if (offSet != null) ret.add(offSet);
-        if (scale != null) ret.add(scale);
+        if (base != null && base instanceof RegOprand) ret.add(base);
+        if (offSet != null && offSet instanceof RegOprand) ret.add(offSet);
+        if (scale != null && scale instanceof RegOprand) ret.add(scale);
         return ret;
     }
 
     public void replaceUseReg(HashMap <Oprand, Oprand> set) {
-        if (set.containsKey(base)) base = set.get(base);
-        if (set.containsKey(offSet)) offSet = set.get(offSet);
+        if (base != null && base instanceof RegOprand) {
+            if (set.containsKey(base)) base = set.get(base);
+        }
+        if (offSet != null && offSet instanceof RegOprand) {
+            if (set.containsKey(offSet)) offSet = set.get(offSet);
+        }
     }
 
     public AddrOprand copy() {

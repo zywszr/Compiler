@@ -29,6 +29,8 @@ public class CodeGen {
     void processFunc(FuncFrame curfunc) {
         LinkedList <Oprand> parameters = curfunc.parameters;
         if (parameters.size() > 6) {
+            // System.out.println(curfunc.getName());
+            // System.out.println(parameters.size());
             for (int i = 6 ; i < parameters.size() ; ++ i) {
                 curfunc.params.add((StackSlot) parameters.get(i).memPos);
             }

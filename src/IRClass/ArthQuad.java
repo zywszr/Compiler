@@ -36,6 +36,7 @@ public class ArthQuad extends Quad {
         System.out.print(" ");
         r1.print();
         System.out.print(" ");
+
         if (r2 != null) {
             r2.print();
             System.out.print(" ");
@@ -50,7 +51,11 @@ public class ArthQuad extends Quad {
             rt.print();
             if (r1 != null) {
                 System.out.print(", ");
-                r1.print();
+                if (op.equals(SAR) || op.equals(SAL)) {
+                    System.out.print("cl");
+                } else {
+                    r1.print();
+                }
             }
         } else if (r1 != null) {
             r1.print();
