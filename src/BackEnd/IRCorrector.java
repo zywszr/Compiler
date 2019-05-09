@@ -83,6 +83,11 @@ public class IRCorrector {
                         q.setR1(q.getR2());
                         q.setR2(null);
                         q.setRt(null); // remember to test
+                        if (!(q.getR1() instanceof RegOprand)) {
+                            Oprand newR1 = newTempVar(false);
+                            q.prepend(new ArthQuad(MOV, newR1, q.getR1()));
+                            q.setR1(newR1);
+                        }
                     }
                     break;
                 case "div":

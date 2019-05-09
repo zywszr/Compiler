@@ -8,7 +8,8 @@ public class Scope<T> {
     public ArrayList< Scope<T> > childScopes;
     public Scope<T> parent;
     public SymbolTable<T> table;
-    public ArrayList <String> varIdx;
+    public HashMap <String, Long> varIdx;
+    public Long classSize;
     String name;
 
     public String getName() {
@@ -19,7 +20,8 @@ public class Scope<T> {
         childScopes = new ArrayList<>();
         parent = Parent;
         table = new SymbolTable<>();
-        varIdx = new ArrayList<>();
+        varIdx = new HashMap<>();
+        classSize = 0L;
         name = Name;
     }
 
@@ -64,6 +66,11 @@ public class Scope<T> {
     public void addVar(String varName, T type) {
         String Name = (checkAddrType(type) ? "A" : "V") + "_" + varName + "_" + name;
         // System.out.println(Name);
-        varIdx.add(Name);
+        varIdx.put(Name, classSize);
+        if (type instanceof StringTypeDef) {
+            classSize += 32;
+        } else {
+            classSize += 1;
+        }
     }
 }

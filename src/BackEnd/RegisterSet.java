@@ -45,8 +45,12 @@ public class RegisterSet {
         for (int i = 0 ; i < 16 ; ++ i) {
             PhyRegOprand p = new PhyRegOprand(regNames[i]);
             allRegs.add(p);
-            if (isCaller[i] != null && isCaller[i] == true) {
-                callerSave.add(p);
+            if (isCaller[i] != null) {
+                if (isCaller[i]) {
+                    callerSave.add(p);
+                } else {
+                    calleeSave.add(p);
+                }
             }
         }
 

@@ -86,7 +86,7 @@ public class CodeGen {
         }
         CFGNode end = curfunc.getEnd();
         if (end == null) {
-            System.out.println(curfunc.getName());
+            System.out.println("*********************" + curfunc.getName());
         }
         for (Oprand reg : callees) {
             end.insertQuad(new PopQuad(reg));
@@ -102,12 +102,12 @@ public class CodeGen {
 
     void initPrint() {
         globals.addAll(lineIR.getGlobal());
-        globals.add("String_substring");
-        globals.add("String_parseInt");
-        globals.add("String_ord");
-        globals.add("String_strcpy");
-        globals.add("String_strcat");
-        globals.add("String_length"); // may be the same
+        globals.add("string_substring");
+        globals.add("string_parseInt");
+        globals.add("string_ord");
+        globals.add("string_strcpy");
+        globals.add("string_strcat");
+        globals.add("string_length"); // may be the same
         globals.add("print");
         globals.add("println");
         globals.add("getString");

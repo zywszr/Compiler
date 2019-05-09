@@ -114,6 +114,7 @@ public class IRBuilder extends ASTVisitor {
         curClassType = null;
         if (!flag) {
             createNewFunc(node.id + "_" + node.id);
+            curfunc.setEnd(curlabel);
             completeFunc();
         }
         lineIR.pushClassSize(node.id, node.type.getSize());
@@ -147,7 +148,7 @@ public class IRBuilder extends ASTVisitor {
         ArrayList <Oprand> params = new ArrayList<>();
         params.add(to);
         params.add(from);
-        genFuncQuad("String_strcpy", params, false, null);
+        genFuncQuad("string_strcpy", params, false, null);
     }
 
     @Override public void visit(VarDefNode node) throws Exception {
@@ -163,7 +164,7 @@ public class IRBuilder extends ASTVisitor {
                 if (node.reg == null) {
                     node.reg = getReg(node.reName, false);
                 }
-                curfunc.pushVar(node.reName);
+                // curfunc.pushVar(node.reName);
                 // string
                 if (node.type instanceof StringTypeDef) {
                     genNewFunc(new ImmOprand(256L), node.reg);
@@ -217,8 +218,9 @@ public class IRBuilder extends ASTVisitor {
         }
         for (int i = 0 ; i < node.childs.size() ; ++ i) {
             Node child = node.childs.get(i);
-            visit(child);
+            // visit(child);
             if (i < node.childs.size() - 1) {
+                child.reg = getReg(child.reName, false);
                 curfunc.parameters.add(child.reg);
                 if (i < K) {
                     addQuad(curlabel, new ArthQuad(MOV, child.reg, args.get(i)));
@@ -227,10 +229,10 @@ public class IRBuilder extends ASTVisitor {
                     child.reg.setMemPos(stack);
                     addQuad(curlabel, new ArthQuad(MOV, child.reg, stack));
                 }
+            } else {
+                visit(child);
             }
         }
-        // System.out.println(curfunc.getName());
-        // System.out.println(curfunc.parameters.size());
 
         if (curlabel != null) {
            addQuad(curlabel, new JumpQuad(JMP, curRetLabel));
@@ -248,14 +250,19 @@ public class IRBuilder extends ASTVisitor {
         curfunc.parameters.add(getReg(inClass + "_this", true));
         for (int i = 0 ; i < node.childs.size() ; ++ i) {
             Node child = node.childs.get(i);
-            visit(child);
+            // visit(child);
             if (i < node.childs.size() - 1) {
+                child.reg = getReg(child.reName, false);
                 curfunc.parameters.add(child.reg);
                 if (i < 5) {
                     addQuad(curlabel, new ArthQuad(MOV, child.reg, args.get(i + 1)));
                 } else {
-                    addQuad(curlabel, new ArthQuad(MOV, child.reg, new StackSlot()));
+                    MemOprand stack = new StackSlot();
+                    child.reg.setMemPos(stack);
+                    addQuad(curlabel, new ArthQuad(MOV, child.reg, stack));
                 }
+            } else {
+                visit(child);
             }
         }
 
@@ -476,7 +483,7 @@ public class IRBuilder extends ASTVisitor {
         ArrayList <Oprand> params = new ArrayList<>();
         params.add(l);
         params.add(r);
-        genFuncQuad("String_strcat", params, false, null);
+        genFuncQuad("string_strcat", params, false, null);
     }
 
     @Override public void visit(BinExprNode node) throws Exception {
@@ -655,13 +662,16 @@ public class IRBuilder extends ASTVisitor {
                 genNewFunc(new ImmOprand(256L), node.reg);
             }
 
-            if (lson.id.equals("+")) lson.reg = node.reg;
+            if (lson.id.equals("+") && (!lson.isUnique())) {
+                // System.out.println("yes");
+                lson.reg = node.reg;
+            }
             visit(lson);
-            if (!lson.id.equals("+")) genStrcatFunc(node.reg, lson.reg);
+            if (!(lson.id.equals("+") && (!lson.isUnique()))) genStrcatFunc(node.reg, lson.reg);
 
-            if (rson.id.equals("+")) rson.reg = node.reg;
+            if (rson.id.equals("+") && (!rson.isUnique())) rson.reg = node.reg;
             visit(rson);
-            if (!rson.id.equals("+")) genStrcatFunc(node.reg, rson.reg);
+            if (!(rson.id.equals("+") && (!rson.isUnique()))) genStrcatFunc(node.reg, rson.reg);
 
         } else if (node.id.equals("=")){
             lson.setLeftVal();
@@ -675,7 +685,11 @@ public class IRBuilder extends ASTVisitor {
             } else {
                 visit(rson);
             }
-            addQuad(curlabel, new ArthQuad(MOV, lson.reg, rson.reg));
+            if (lson.type instanceof StringTypeDef) {
+                genStrcpyFunc(lson.reg, rson.reg);
+            } else {
+                addQuad(curlabel, new ArthQuad(MOV, lson.reg, rson.reg));
+            }
             node.reg = null;
         }
     }
@@ -924,7 +938,11 @@ public class IRBuilder extends ASTVisitor {
                                                 new AddrOprand(child.reg,
                                                                 new ImmOprand(((OtherTypeDef)child.type).getBelongClass().getVarIdx(obj.reName)),
                                                                 new ImmOprand(8L))));
-            node.reg = new MemOprand(tmp, null, null);
+            if (node.type instanceof StringTypeDef) {
+                node.reg = tmp;
+            } else {
+                node.reg = new MemOprand(tmp, null, null);
+            }
             if (!node.isLeftVal()) {
                 checkBool(node);
             }

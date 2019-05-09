@@ -19,19 +19,20 @@ public class ClassTypeDef extends TypeDef {
         className = "";
     }
 
-    public ClassTypeDef(Map <String, TypeDef> objectList, ArrayList <String> _varIdx, Scope<TypeDef> _blg, String _className) {
+    public ClassTypeDef(Map <String, TypeDef> objectList, HashMap <String, Long> _varIdx, Scope<TypeDef> _blg, String _className, Long _classSize) {
         objects = new HashMap<>();
         for (Map.Entry <String, TypeDef> iter : objectList.entrySet()) {
             objects.put(iter.getKey(), iter.getValue());
         }
-        classSize = 0L;
-        varIdx = new HashMap<>();
-        for (int i = 0 ; i < _varIdx.size() ; ++ i) {
+        classSize = _classSize;
+        varIdx = new HashMap<>(_varIdx);
+        /* for (int i = 0 ; i < _varIdx.size() ; ++ i) {
             // System.out.print("_varIdx i:");
             // System.out.println(_varIdx.get(i));
             varIdx.put(_varIdx.get(i), classSize);
             classSize += 1;
-        }
+        }*/
+
         blg = _blg;
         className = _className;
     }

@@ -61,9 +61,10 @@ public class LineIR {
     }
 
     public Long addStrLiter(String str) {
-        Long ret = strLiters.get(str);
+        /* Long ret = strLiters.get(str);
         if (ret != null) return ret;
-        else ret = strLiterSize;
+        else */
+        Long ret = strLiterSize;
         addRoData("S_" + Long.toString(ret), str.getBytes());
         strLiters.put(str, strLiterSize);
         strLiterSize += 1;

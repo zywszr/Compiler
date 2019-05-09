@@ -424,7 +424,7 @@ public class SemanticChecker extends ASTVisitor {
         visitChild(object);
         curNode.type = typeCheckObj(nodeclass, object);
         if (curNode.type instanceof SpecialTypeDef) {
-            ClassTypeDef tmp = (ClassTypeDef) rootScope.findItem(((OtherTypeDef)curNode.type).getTypeId());
+            ClassTypeDef tmp = (ClassTypeDef) rootScope.findItem(((SpecialTypeDef)curNode.type).getTypeId());
             ((SpecialTypeDef) curNode.type).setBelongClass(tmp);
         }
         object.inClass = ((SpecialTypeDef)child.type).getTypeId();

@@ -2,7 +2,7 @@ package BackEnd;
 
 public class PreCode {
     static public String text = "\n" +
-            "String_length:\n" +
+            "string_length:\n" +
             "        xor     eax, eax\n" +
             "        cmp     byte [rdi], 0\n" +
             "        jz      L_002\n" +
@@ -29,7 +29,7 @@ public class PreCode {
             "\n" +
             "ALIGN   8\n" +
             "\n" +
-            "String_strcat:\n" +
+            "string_strcat:\n" +
             "        jmp     L_004\n" +
             "\n" +
             "\n" +
@@ -65,7 +65,7 @@ public class PreCode {
             "\n" +
             "ALIGN   16\n" +
             "\n" +
-            "String_strcpy:\n" +
+            "string_strcpy:\n" +
             "        jmp     L_008\n" +
             "\n" +
             "\n" +
@@ -89,7 +89,7 @@ public class PreCode {
             "\n" +
             "ALIGN   8\n" +
             "\n" +
-            "String_substring:\n" +
+            "string_substring:\n" +
             "push    r14\n" +
             "        push    r13\n" +
             "        mov     r14, rdi\n" +
@@ -121,7 +121,7 @@ public class PreCode {
             "        ret\n" +
             "\n" +
             "\n" +
-            "String_parseInt:\n" +
+            "string_parseInt:\n" +
             "        sub     rsp, 24\n" +
             "        mov     esi, L_021\n" +
             "\n" +
@@ -144,7 +144,7 @@ public class PreCode {
             "        nop\n" +
             "ALIGN   16\n" +
             "\n" +
-            "String_ord:\n" +
+            "string_ord:\n" +
             "        movsx   rax, byte [rdi+rsi]\n" +
             "        ret\n" +
             "\n" +

@@ -25,7 +25,7 @@ public class FuncFrame {
     public HashSet <Oprand> phyRegs;
 
     public int getFuncSize() {
-        int siz = 8 * (params.size() + temps.size());
+        int siz = 8 * temps.size();
         siz = (siz + 16 - 1) / 16 * 16;
         return siz;
     }

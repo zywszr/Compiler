@@ -47,7 +47,7 @@ public class ScopeBuilder {
             if (childnode instanceof ClassDefNode) {
                 ClassScope<TypeDef> childScope = Scope.newClassScope(curScope);
                 scopeBuild(childScope, childnode);
-                ClassTypeDef classType = new ClassTypeDef(childScope.table.getHashMap(), childScope.varIdx, childScope, childnode.id);
+                ClassTypeDef classType = new ClassTypeDef(childScope.table.getHashMap(), childScope.varIdx, childScope, childnode.id, childScope.classSize);
                 if (!curScope.addItem(childnode.id, classType)) {
                     throw new ReDefinedError(childnode.pos);
                 }
