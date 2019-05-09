@@ -10,9 +10,9 @@ public class MemOprand extends AddrOprand {
         System.out.print("[");
         base.print();
         if (offSet != null) {
-            System.out.println("+");
+            System.out.print("+");
             offSet.print();
-            System.out.println("*");
+            System.out.print("*");
             scale.print();
         }
         if (disp != null) {

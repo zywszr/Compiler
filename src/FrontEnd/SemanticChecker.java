@@ -347,6 +347,7 @@ public class SemanticChecker extends ASTVisitor {
                     curNode.reg = expr.reg;
                     break;
                 case "-":
+                    // System.out.println("yes_neg");
                     curNode.reg = new ImmOprand(- ((ImmOprand)expr.reg).getVal());
                     break;
                 case "!":
@@ -445,6 +446,9 @@ public class SemanticChecker extends ASTVisitor {
         }
         Pair<Scope<TypeDef>, TypeDef> ret = curNode.belong.matchVarName(curNode.id);
         if (ret == null) throw new NoDefinedVarError(curNode.pos);
+        if (ret.getKey() instanceof ClassScope) {
+            curNode.inClass = curClass;
+        }
         curNode.type = ret.getValue();
         curNode.reName = (checkAddrType(curNode.type) ? "A" : "V") + "_" + curNode.id + "_" + ret.getKey().getName();
     }

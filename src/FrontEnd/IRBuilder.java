@@ -223,7 +223,7 @@ public class IRBuilder extends ASTVisitor {
                 child.reg = getReg(child.reName, false);
                 curfunc.parameters.add(child.reg);
                 if (i < K) {
-                    addQuad(curlabel, new ArthQuad(MOV, child.reg, args.get(i)));
+                    addQuad(curlabel, new ArthQuad(MOV, child.reg, args.get(i + (K == 5 ? 1 : 0))));
                 } else {
                     MemOprand stack = new StackSlot();
                     child.reg.setMemPos(stack);
@@ -707,6 +707,7 @@ public class IRBuilder extends ASTVisitor {
                     addQuad(curlabel, new JumpQuad(JMP, falseLabels.peek()));
                 }
             }
+            return;
         }
 
         Node child = node.childs.get(0);
@@ -801,7 +802,7 @@ public class IRBuilder extends ASTVisitor {
         addQuad(curlabel, new ArthQuad(MOV, new MemOprand(node.reg, null, null), expr.reg));
 
         if (eleType.childs.isEmpty() && (!(eleType.type instanceof StringTypeDef))) return;
-        if (eleType.childs.get(0) instanceof EmptyExprNode) return;
+        if (!eleType.childs.isEmpty() && eleType.childs.get(0) instanceof EmptyExprNode) return;
 
         Oprand i = newTempVar(false);
         addQuad(curlabel, new ArthQuad(MOV, i, new ImmOprand(0L)));
@@ -857,7 +858,7 @@ public class IRBuilder extends ASTVisitor {
     }
 
     void checkBool(Node node) {
-        if (node.type instanceof BoolTypeDef) {
+        if (node.type instanceof BoolTypeDef && (!trueLabels.isEmpty())) {
             CFGNode newTrueLabel = trueLabels.peek(), newFalseLabel = falseLabels.peek();
             addQuad(curlabel, new CompQuad(node.reg, new ImmOprand(1L)));
             addQuad(curlabel, new JumpQuad("je", newTrueLabel, newFalseLabel));
