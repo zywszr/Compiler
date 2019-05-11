@@ -1015,9 +1015,9 @@ public class IRBuilder extends ASTVisitor {
             node.reg = new MemOprand(base, offset, new ImmOprand(8L));
         } else if (checkGlobalVar(node.reName)) {
             node.reg = getReg(node.reName, false, -1);
-            if (node.isLeftVal() && (!(node.type instanceof StringTypeDef))) {
+            // if (node.isLeftVal() && (!(node.type instanceof StringTypeDef))) {
                 globalVarDefined.add(node.reg);
-            }
+            // }
             //if (node.isWillUse()) {
                 globalVarUsed.add(node.reg);
             //}

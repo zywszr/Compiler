@@ -192,15 +192,16 @@ public class IRCorrector {
             case "call":
                 if (checkCall(q.funcName)) {
                     HashSet <Oprand> set = new HashSet<>(curfunc.globalVarUsed);
-                    set.retainAll(lineIR.stringToFunc.get(q.funcName).callVarDefined);
+                    // set.retainAll(lineIR.stringToFunc.get(q.funcName).callVarDefined);
                     for (Oprand var : set) {
                         GlobalMemOprand mem = new GlobalMemOprand(var);
                         var.setMemPos(mem);
                         q.append(new ArthQuad(MOV, var, mem));
                     }
 
-                    set.addAll(lineIR.stringToFunc.get(q.funcName).callVarUsed);
-                    set.retainAll(curfunc.globalVarDefined);
+                    set = new HashSet<>(curfunc.globalVarDefined);
+                    // set.addAll(lineIR.stringToFunc.get(q.funcName).callVarUsed);
+                    // set.retainAll(curfunc.globalVarDefined);
 
                     for (Oprand var : set) {
                         // System.out.println(((RegOprand) var).getRegName());
