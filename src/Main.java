@@ -42,7 +42,7 @@ public class Main {
 
         IRBuilder buildIR = new IRBuilder(BuildScope.rootScope, funcNode);
         LineIR lineIR = buildIR.buildLineIR(ASTroot);
-        // lineIR.print();
+        //lineIR.print();
 
         GlobalSolver solveGlobal = new GlobalSolver(lineIR);
         solveGlobal.work();
