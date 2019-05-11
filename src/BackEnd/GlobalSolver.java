@@ -58,6 +58,9 @@ public class GlobalSolver {
                 var.setMemPos(mem);
                 end.prepend(new ArthQuad(MOV, mem, var));
             }
+            FuncQuad q = new FuncQuad(RET, null);
+            q.isReaRet = true;
+            end.append(q);
         }
 
         for (FuncFrame func : lineIR.getFuncs()) {

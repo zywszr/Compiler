@@ -89,11 +89,11 @@ public class CodeGen {
             System.out.println("*********************" + curfunc.getName());
         }
         for (Oprand reg : callees) {
-            end.insertQuad(new PopQuad(reg));
+            end.tail.prepend(new PopQuad(reg));
         }
-        end.insertQuad(new ArthQuad(MOV, rsp, rbp));
-        end.insertQuad(new PopQuad(rbp));
-        end.insertQuad(new FuncQuad(RET, null));
+        end.tail.prepend(new ArthQuad(MOV, rsp, rbp));
+        end.tail.prepend(new PopQuad(rbp));
+        // end.insertQuad(new FuncQuad(RET, null));
     }
 
     ArrayList <String> globals = new ArrayList<>();

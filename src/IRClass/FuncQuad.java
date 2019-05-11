@@ -11,6 +11,7 @@ import static IRClass.Inst.*;
 
 public class FuncQuad extends Quad {
     public String funcName;
+    public boolean isReaRet;
 
     public FuncQuad(String _op, Oprand _r1, Oprand _r2) { // param
         super();
@@ -25,6 +26,7 @@ public class FuncQuad extends Quad {
         op = _op;
         r1 = _r1;
         funcName = "";
+        isReaRet = false;
     }
 
     public FuncQuad(String _op, Oprand _rt, String func, Oprand _r1) { // call
@@ -43,6 +45,8 @@ public class FuncQuad extends Quad {
             for (int i = 0 ; i < paramNum ; ++ i) {
                 ret.add(args.get(i));
             }
+        } else if (op.equals(RET)) {
+            ret.add(rax);
         }
         return ret;
     }
