@@ -154,7 +154,7 @@ public class IRBuilder extends ASTVisitor {
     boolean checkInline(String funcName) {
         if (!funcNode.containsKey(funcName)) return false;
         if (inlineFunc.contains(funcName)) return false;
-        if (inLineDepth >= 3) return false;
+        if (inLineDepth >= 1) return false;
         return true;
     }
 
@@ -1069,7 +1069,7 @@ public class IRBuilder extends ASTVisitor {
                 }
                 params.add(son.reg);
             }
-            if (node.reg != null) {
+            if (!(node.type instanceof VoidTypeDef)) {
                 genFuncQuad(obj.inClass + "_" + obj.id, params, true, node.reg);
                 checkBool(node);
             } else  {
