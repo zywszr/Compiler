@@ -40,6 +40,7 @@ public class IRBuilder extends ASTVisitor {
     HashMap <String, Node> funcNode;
     Stack <Oprand> retRegs;
     Stack <CFGNode> retLabels;
+    HashSet <String> inlineFunc;
 
     public IRBuilder(Scope <TypeDef> rootScope, HashMap <String, Node> _funcNode) {
         lineIR = new LineIR();
@@ -62,6 +63,7 @@ public class IRBuilder extends ASTVisitor {
         funcNode = _funcNode;
         retRegs = new Stack<>();
         retLabels = new Stack<>();
+        inlineFunc = new HashSet<>();
     }
 
     public LineIR buildLineIR(Node ASTroot) throws Exception {
@@ -79,9 +81,11 @@ public class IRBuilder extends ASTVisitor {
     public void createNewFunc(String funcName) {
         curfunc = new FuncFrame(funcName);
         curlabel = createNewLabel();
+        inlineFunc.add(funcName);
     }
 
     public void completeFunc() {
+        inlineFunc.remove(curfunc.getName());
         curfunc.createCFG();
         lineIR.pushFunc(curfunc);
     }
@@ -148,8 +152,8 @@ public class IRBuilder extends ASTVisitor {
     }
 
     boolean checkInline(String funcName) {
-        // System.out.println("Inline: " + funcName);
         if (!funcNode.containsKey(funcName)) return false;
+        if (inlineFunc.contains(funcName)) return false;
         if (inLineDepth >= 3) return false;
         return true;
     }
@@ -170,7 +174,9 @@ public class IRBuilder extends ASTVisitor {
             }
 
             if (isReturn) retRegs.push(rdest);
+            inlineFunc.add(funcName);
             visit(node);
+            inlineFunc.remove(funcName);
             if (isReturn) retRegs.pop();
             -- inLineDepth;
         } else {
@@ -297,7 +303,6 @@ public class IRBuilder extends ASTVisitor {
         globalVarUsed.clear();
         for (int i = 0 ; i < node.childs.size() ; ++ i) {
             Node child = node.childs.get(i);
-            // visit(child);
             if (i < node.childs.size() - 1) {
                 child.reg = getReg(child.reName, false, inLineDepth);
                 curfunc.parameters.add(child.reg);
@@ -319,11 +324,9 @@ public class IRBuilder extends ASTVisitor {
         curfunc.setEnd(retLabels.peek());
         solveGlobalVar();
         retLabels.pop();
-        if (node.id.equals("main")) {
-            curfunc.getStart().prepend(new FuncQuad(CALL, null, "___init", new ImmOprand(0L)));
-        }
 
         // curRetLabel = null;
+
         completeFunc();
     }
 
@@ -387,9 +390,10 @@ public class IRBuilder extends ASTVisitor {
     }
 
     @Override public void visit(ExprStateNode node) throws Exception {
-        // if (node.childs.get(0).type instanceof BoolTypeDef) {
-            node.childs.get(0).setNotUse();
-        // }
+        if (node.childs.get(0).type instanceof BoolTypeDef) {
+            node.childs.get(0).setNoJump();
+        }
+        node.childs.get(0).setNotUse();
         visitChild(node);
     }
 
@@ -783,13 +787,13 @@ public class IRBuilder extends ASTVisitor {
                     break;
             }
         } else if (node.type instanceof StringTypeDef) {
-            if (node.reg == null) {
+            if (node.reg == null || node.isStrTop) {
+                node.isStrTop = true;
                 node.reg = newTempVar(true);
                 genNewFunc(new ImmOprand(256L), node.reg);
             }
 
             if (lson.id.equals("+") && (!lson.isUnique())) {
-                // System.out.println("yes");
                 lson.reg = node.reg;
             }
             visit(lson);
@@ -801,7 +805,7 @@ public class IRBuilder extends ASTVisitor {
 
         } else if (node.id.equals("=")){
             lson.setLeftVal();
-            lson.setNotUse();
+            // lson.setNotUse();
             visit(lson);
             if (rson.type instanceof BoolTypeDef) {
                 CFGNode nowLabel = createNewLabel();
@@ -865,7 +869,9 @@ public class IRBuilder extends ASTVisitor {
             }
         } else {
             node.reg = newTempVar(checkAddrType(node.type));
-            child.setLeftVal();
+            if (node.id.equals("++") || node.id.equals("--")) {
+                child.setLeftVal();
+            }
             visit(child);
             switch (node.id) {
                 case "++":
@@ -932,7 +938,7 @@ public class IRBuilder extends ASTVisitor {
         }
         addQuad(curlabel, new ArthQuad(MOV, new MemOprand(node.reg, null, null), expr.reg));
 
-        if (eleType.childs.isEmpty() && (!(eleType.type instanceof SpecialTypeDef))) return;
+        if (eleType.childs.isEmpty() && (!(eleType.type instanceof StringTypeDef))) return;
         if (!eleType.childs.isEmpty() && eleType.childs.get(0) instanceof EmptyExprNode) return;
 
         Oprand i = newTempVar(false);
@@ -989,7 +995,7 @@ public class IRBuilder extends ASTVisitor {
     }
 
     void checkBool(Node node) {
-        if (node.isWillUse() && node.type instanceof BoolTypeDef && (!trueLabels.isEmpty())) {
+        if (node.isWillJump() && node.type instanceof BoolTypeDef && (!trueLabels.isEmpty())) {
             CFGNode newTrueLabel = trueLabels.peek(), newFalseLabel = falseLabels.peek();
             addQuad(curlabel, new CompQuad(node.reg, new ImmOprand(1L)));
             addQuad(curlabel, new JumpQuad("je", newTrueLabel, newFalseLabel));
@@ -1012,9 +1018,9 @@ public class IRBuilder extends ASTVisitor {
             if (node.isLeftVal() && (!(node.type instanceof StringTypeDef))) {
                 globalVarDefined.add(node.reg);
             }
-            if (node.isWillUse()) {
+            //if (node.isWillUse()) {
                 globalVarUsed.add(node.reg);
-            }
+            //}
 
         } else {
             node.reg = getReg(node.reName, false, inLineDepth);
@@ -1048,7 +1054,6 @@ public class IRBuilder extends ASTVisitor {
             return;
         }
         if (obj instanceof FunEleExprNode) {
-            // System.out.println("objNode");
             ArrayList <Oprand> params = new ArrayList<>();
             params.add(child.reg);
             for (int i = 0 ; i < obj.childs.size() ; ++ i) {

@@ -2,6 +2,7 @@ package BackEnd;
 
 import IRClass.*;
 import OprandClass.GlobalMemOprand;
+import OprandClass.ImmOprand;
 import OprandClass.Oprand;
 import OprandClass.RegOprand;
 
@@ -44,9 +45,13 @@ public class GlobalSolver {
         for (FuncFrame func : lineIR.getFuncs()) {
             CFGNode start = func.getStart(), end = func.getEnd();
             for (Oprand var : func.globalVarUsed) {
+                // System.out.println(((RegOprand) var).getRegName() + "--------------------------");
                 GlobalMemOprand mem = new GlobalMemOprand(var);
                 var.setMemPos(mem);
                 start.prepend(new ArthQuad(MOV, var, mem));
+            }
+            if (func.getName().equals("main")) {
+                start.prepend(new FuncQuad(CALL, null, "___init", new ImmOprand(0L)));
             }
             for (Oprand var : func.globalVarDefined) {
                 GlobalMemOprand mem = new GlobalMemOprand(var);

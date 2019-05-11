@@ -18,6 +18,8 @@ public abstract class Node {
     PositionDef pos;
     List<Node> childs;
     Scope<TypeDef> belong;
+    public boolean isStrTop;
+    boolean willJump;
     boolean unique;
     boolean willUse;
     boolean leftVal;
@@ -34,6 +36,8 @@ public abstract class Node {
         unique = false;
         willUse = true;
         leftVal = false;
+        willJump = true;
+        isStrTop = false;
     }
     public void accept(ASTVisitor visitor) throws Exception {
         visitor.visit(this);
@@ -55,6 +59,12 @@ public abstract class Node {
     }
     public boolean isLeftVal() {
         return leftVal;
+    }
+    public void setNoJump() {
+        willJump = false;
+    }
+    public boolean isWillJump() {
+        return willJump;
     }
 }
 
