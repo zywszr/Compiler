@@ -154,7 +154,7 @@ public class IRBuilder extends ASTVisitor {
     boolean checkInline(String funcName) {
         if (!funcNode.containsKey(funcName)) return false;
         if (inlineFunc.contains(funcName)) return false;
-        if (inLineDepth >= 3) return false;
+        if (inLineDepth >= 0) return false;
         return true;
     }
 
