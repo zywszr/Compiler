@@ -456,7 +456,10 @@ public class SemanticChecker extends ASTVisitor {
             return;
         }
         Pair<Scope<TypeDef>, TypeDef> ret = curNode.belong.matchVarName(curNode.id);
-        if (ret == null) throw new NoDefinedVarError(curNode.pos);
+        if (ret == null) {
+            System.out.println(curNode.id);
+            throw new NoDefinedVarError(curNode.pos);
+        }
         if (ret.getKey() instanceof ClassScope) {
             curNode.inClass = curClass;
         }

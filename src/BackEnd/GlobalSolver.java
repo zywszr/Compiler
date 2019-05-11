@@ -44,20 +44,20 @@ public class GlobalSolver {
 
         for (FuncFrame func : lineIR.getFuncs()) {
             CFGNode start = func.getStart(), end = func.getEnd();
-            for (Oprand var : func.globalVarUsed) {
+            /* for (Oprand var : func.globalVarUsed) {
                 // System.out.println(((RegOprand) var).getRegName() + "--------------------------");
                 GlobalMemOprand mem = new GlobalMemOprand(var);
                 var.setMemPos(mem);
                 start.prepend(new ArthQuad(MOV, var, mem));
-            }
+            }*/
             if (func.getName().equals("main")) {
                 start.prepend(new FuncQuad(CALL, null, "___init", new ImmOprand(0L)));
             }
-            for (Oprand var : func.globalVarDefined) {
+            /* for (Oprand var : func.globalVarDefined) {
                 GlobalMemOprand mem = new GlobalMemOprand(var);
                 var.setMemPos(mem);
                 end.prepend(new ArthQuad(MOV, mem, var));
-            }
+            }*/
             FuncQuad q = new FuncQuad(RET, null);
             q.isReaRet = true;
             end.append(q);

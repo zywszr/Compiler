@@ -190,7 +190,7 @@ public class IRCorrector {
                 }
                 break;
             case "call":
-                if (checkCall(q.funcName)) {
+                /*if (checkCall(q.funcName)) {
                     HashSet <Oprand> set = new HashSet<>(curfunc.globalVarUsed);
                     set.retainAll(lineIR.stringToFunc.get(q.funcName).callVarDefined);
                     for (Oprand var : set) {
@@ -211,7 +211,7 @@ public class IRCorrector {
                         q.prepend(new ArthQuad(MOV, mem, var));
                     }
 
-                }
+                }*/
                 if (q.getRt() != null) {
                     q.append(new ArthQuad(MOV, q.getRt(), rax));
                     q.setRt(rax);
