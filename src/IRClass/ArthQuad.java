@@ -67,7 +67,7 @@ public class ArthQuad extends Quad {
         HashSet <Oprand> ret = new HashSet<>();
         if (op.equals(CDQ)) {
             return ret;
-        } else if (op.equals(NOT) || op.equals(NEG)) {
+        } else if (op.equals(NOT) || op.equals(NEG) || op.equals(INC)) {
             if (rt instanceof MemOprand) {
                 ret.addAll(((MemOprand) rt).getUsed());
             } else if (rt instanceof RegOprand) {
@@ -110,7 +110,7 @@ public class ArthQuad extends Quad {
     @Override public void replaceUseReg(HashMap <Oprand, Oprand> set) {
         if (op.equals(CDQ)) {
             return;
-        } else if (op.equals(NOT) || op.equals(NEG)) {
+        } else if (op.equals(NOT) || op.equals(NEG) || op.equals(INC)) {
             if (rt instanceof RegOprand && set.containsKey(rt)) {
                 rt = set.get(rt);
             } else if (rt instanceof MemOprand) {

@@ -61,6 +61,7 @@ public class AddrOprand extends Oprand {
     }
 
     public void replaceUseReg(HashMap <Oprand, Oprand> set) {
+        if (this instanceof GlobalMemOprand) return;
         if (base != null && base instanceof RegOprand) {
             if (set.containsKey(base)) base = set.get(base);
         }

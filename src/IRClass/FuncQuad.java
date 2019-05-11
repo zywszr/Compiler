@@ -10,7 +10,7 @@ import java.util.HashSet;
 import static IRClass.Inst.*;
 
 public class FuncQuad extends Quad {
-    String funcName;
+    public String funcName;
 
     public FuncQuad(String _op, Oprand _r1, Oprand _r2) { // param
         super();

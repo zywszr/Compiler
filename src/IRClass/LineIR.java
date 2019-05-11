@@ -10,6 +10,7 @@ public class LineIR {
 
     HashMap <String, Long> classSizeList;
     HashMap <String, Long> strLiters;
+    public HashMap <String, FuncFrame> stringToFunc;
     ArrayList <String> globalVar;
     Long strLiterSize;
     ArrayList <Pair<String, String>> roData;
@@ -22,6 +23,7 @@ public class LineIR {
         funcs = new ArrayList<>();
         classSizeList = new HashMap<>();
         strLiters = new HashMap<>();
+        stringToFunc = new HashMap<>();
         globalVar = new ArrayList<>();
         strLiterSize = 0L;
         globalVarSize = 0L;
@@ -41,6 +43,7 @@ public class LineIR {
 
     public void pushFunc(FuncFrame func) {
         funcs.add(func);
+        stringToFunc.put(func.name, func);
         global.add(func.name);
     }
 

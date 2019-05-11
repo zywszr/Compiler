@@ -127,7 +127,7 @@ public class RegisterAllocater {
 
     RegOprand newTempVar(boolean isAddr) {
         tmpVarIdx += 1;
-        return getReg((isAddr ? "A" : "V") + "_" + Integer.toString(tmpVarIdx), true);
+        return getReg((isAddr ? "A" : "V") + "_" + Integer.toString(tmpVarIdx), true, 0);
     }
 
     private void spillRegs(FuncFrame func) {

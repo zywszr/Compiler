@@ -2,6 +2,7 @@ package FrontEnd;
 
 import OprandClass.*;
 import IRClass.*;
+import ScopeClass.Scope;
 import TypeDefition.*;
 import IRClass.FuncFrame;
 
@@ -10,6 +11,7 @@ import static IRClass.Inst.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Stack;
 
 import static BackEnd.RegisterSet.getReg;
@@ -28,11 +30,18 @@ public class IRBuilder extends ASTVisitor {
     int tmpVarIdx;
     Stack <CFGNode> trueLabels, falseLabels;
     Stack <CFGNode> nextLabels, breakLabels, continLabels;
+    HashSet <Oprand> globalVarUsed, globalVarDefined;
     ClassTypeDef curClassType;
     CFGNode curRetLabel;
     String inClass;
+    Scope <TypeDef> genScope;
 
-    public IRBuilder() {
+    int inLineDepth;
+    HashMap <String, Node> funcNode;
+    Stack <Oprand> retRegs;
+    Stack <CFGNode> retLabels;
+
+    public IRBuilder(Scope <TypeDef> rootScope, HashMap <String, Node> _funcNode) {
         lineIR = new LineIR();
         curfunc = null;
         curVarKind = 1;
@@ -43,9 +52,16 @@ public class IRBuilder extends ASTVisitor {
         nextLabels = new Stack<>();
         breakLabels = new Stack<>();
         continLabels = new Stack<>();
+        globalVarUsed = new HashSet<>();
+        globalVarDefined = new HashSet<>();
         curClassType = null;
         curRetLabel = null;
         inClass = "";
+        genScope = rootScope;
+        inLineDepth = 0;
+        funcNode = _funcNode;
+        retRegs = new Stack<>();
+        retLabels = new Stack<>();
     }
 
     public LineIR buildLineIR(Node ASTroot) throws Exception {
@@ -80,13 +96,15 @@ public class IRBuilder extends ASTVisitor {
         curVarKind = 1;
         createNewFunc("___init");
         curRetLabel = createNewLabel();
+        retLabels.push(curRetLabel);
         for (int i = 0 ; i < node.childs.size() ; ++ i) {
             Node child = node.childs.get(i);
             if (child instanceof VarDefStateNode) visit(child);
         }
-        addQuad(curlabel, new JumpQuad(JMP, curRetLabel));
-        curfunc.setEnd(curRetLabel);
-        curRetLabel = null;
+
+        addQuad(curlabel, new JumpQuad(JMP, retLabels.peek()));
+        curfunc.setEnd(retLabels.peek());
+        retLabels.pop();
         completeFunc();
 
         for (int i = 0 ; i < node.childs.size() ; ++ i) {
@@ -122,29 +140,56 @@ public class IRBuilder extends ASTVisitor {
 
     RegOprand newTempVar(boolean isAddr) {
         tmpVarIdx += 1;
-        return getReg((isAddr ? "A" : "V") + "_" + Integer.toString(tmpVarIdx), true);
+        return getReg((isAddr ? "A" : "V") + "_" + Integer.toString(tmpVarIdx), true, 0);
     }
 
     public int getTmpVarIdx() {
         return tmpVarIdx;
     }
 
-    void genFuncQuad(String funcName, ArrayList<Oprand> params, boolean isReturn, Oprand rdest) {
-        for (int i = params.size() - 1 ; i >= 0 ; -- i) {
-            addQuad(curlabel, new FuncQuad(PARAM, params.get(i), new ImmOprand((long) i)));
-        }
-        Oprand rd = null;
-        if (isReturn) rd = rdest;
-        addQuad(curlabel, new FuncQuad(CALL, rd, funcName, new ImmOprand((long)params.size())));
+    boolean checkInline(String funcName) {
+        // System.out.println("Inline: " + funcName);
+        if (!funcNode.containsKey(funcName)) return false;
+        if (inLineDepth >= 3) return false;
+        return true;
     }
 
-    void genNewFunc(Oprand siz, Oprand rdest) {
+    void genFuncQuad(String funcName, ArrayList<Oprand> params, boolean isReturn, Oprand rdest) throws Exception {
+        if (checkInline(funcName)) {
+            ++ inLineDepth;
+            Node node = funcNode.get(funcName);
+            boolean isInClass = false;
+            if (!node.inClass.equals("")) {
+                addQuad(curlabel, new ArthQuad(MOV, getReg(node.inClass + "_this", true, inLineDepth), params.get(0)));
+                isInClass = true;
+            }
+            for (int i = 0 ; i < node.childs.size() - 1 ; ++ i) {
+                Node child = node.childs.get(i);
+                child.reg = getReg(child.reName, false, inLineDepth);
+                addQuad(curlabel, new ArthQuad(MOV, child.reg, params.get(i + (isInClass ? 1 : 0))));
+            }
+
+            if (isReturn) retRegs.push(rdest);
+            visit(node);
+            if (isReturn) retRegs.pop();
+            -- inLineDepth;
+        } else {
+            for (int i = params.size() - 1; i >= 0; --i) {
+                addQuad(curlabel, new FuncQuad(PARAM, params.get(i), new ImmOprand((long) i)));
+            }
+            Oprand rd = null;
+            if (isReturn) rd = rdest;
+            addQuad(curlabel, new FuncQuad(CALL, rd, funcName, new ImmOprand((long) params.size())));
+        }
+    }
+
+    void genNewFunc(Oprand siz, Oprand rdest) throws Exception {
         ArrayList <Oprand> params = new ArrayList<>();
         params.add(siz);
         genFuncQuad("malloc", params, true, rdest);
     }
 
-    void genStrcpyFunc(Oprand to, Oprand from) {
+    void genStrcpyFunc(Oprand to, Oprand from) throws Exception {
         ArrayList <Oprand> params = new ArrayList<>();
         params.add(to);
         params.add(from);
@@ -158,11 +203,11 @@ public class IRBuilder extends ASTVisitor {
                 // pushClassObj(node);
                 break;
             case 1: // global
-                node.reg = new GlobalMemOprand(getReg(node.reName, false));
+                node.reg = new GlobalMemOprand(getReg(node.reName, false, -1));
                 lineIR.pushGlobalVar(node.reName);
             case 2: // local
-                if (node.reg == null) {
-                    node.reg = getReg(node.reName, false);
+                if (curVarKind == 2) {
+                    node.reg = getReg(node.reName, false, inLineDepth);
                 }
                 // curfunc.pushVar(node.reName);
                 // string
@@ -200,27 +245,61 @@ public class IRBuilder extends ASTVisitor {
         }
     }
 
-    @Override public void visit(FunctionDefNode node) throws Exception {
-        if (!node.inClass.equals("")) createNewFunc(node.inClass + "_" + node.id);
-        else createNewFunc(node.id);
-        if (node.id.equals("main")) {
-            addQuad(curlabel, new FuncQuad(CALL, null, "___init", new ImmOprand(0L)));
+    void solveGlobalVar() {
+        // CFGNode start = curfunc.getStart();
+        curfunc.setGlobalVarUsed(globalVarUsed);
+        curfunc.setGlobalVarDefined(globalVarDefined);
+        /* for (Oprand var : globalVarUsed) {
+            GlobalMemOprand mem = new GlobalMemOprand(var);
+            var.setMemPos(mem);
+            start.prepend(new ArthQuad(MOV, var, mem));
         }
+        for (Oprand var : globalVarDefined) {
+            GlobalMemOprand mem = new GlobalMemOprand(var);
+            var.setMemPos(mem);
+            curRetLabel.prepend(new ArthQuad(MOV, mem, var));
+        }*/
+    }
+
+    @Override public void visit(FunctionDefNode node) throws Exception {
+        if (inLineDepth > 0) {
+            curRetLabel = createNewLabel();
+            retLabels.push(curRetLabel);
+            curVarKind = 2;
+            visit(node.childs.get(node.childs.size() - 1));
+            if (curlabel != null) {
+                addQuad(curlabel, new JumpQuad(JMP, retLabels.peek()));
+            }
+            curlabel = retLabels.peek();
+            retLabels.pop();
+            return;
+        }
+
+        if (!node.inClass.equals("")) {
+            createNewFunc(node.inClass + "_" + node.id);
+        } else {
+            createNewFunc(node.id);
+        }
+
         curRetLabel = createNewLabel();
+        retLabels.push(curRetLabel);
         curVarKind = 2;
         int K;
-        if (!inClass.equals("")) {
-            addQuad(curlabel, new ArthQuad(MOV, getReg(inClass + "_this", true), args.get(0)));
-            curfunc.parameters.add(getReg(inClass + "_this", true));
+        if (!node.inClass.equals("")) {
+            addQuad(curlabel, new ArthQuad(MOV, getReg(node.inClass + "_this", true, inLineDepth), args.get(0)));
+            curfunc.parameters.add(getReg(node.inClass + "_this", true, inLineDepth));
             K = 5;
         } else {
             K = 6;
         }
+
+        globalVarDefined.clear();
+        globalVarUsed.clear();
         for (int i = 0 ; i < node.childs.size() ; ++ i) {
             Node child = node.childs.get(i);
             // visit(child);
             if (i < node.childs.size() - 1) {
-                child.reg = getReg(child.reName, false);
+                child.reg = getReg(child.reName, false, inLineDepth);
                 curfunc.parameters.add(child.reg);
                 if (i < K) {
                     addQuad(curlabel, new ArthQuad(MOV, child.reg, args.get(i + (K == 5 ? 1 : 0))));
@@ -235,24 +314,48 @@ public class IRBuilder extends ASTVisitor {
         }
 
         if (curlabel != null) {
-           addQuad(curlabel, new JumpQuad(JMP, curRetLabel));
+            addQuad(curlabel, new JumpQuad(JMP, retLabels.peek()));
         }
-        curfunc.setEnd(curRetLabel);
-        curRetLabel = null;
+        curfunc.setEnd(retLabels.peek());
+        solveGlobalVar();
+        retLabels.pop();
+        if (node.id.equals("main")) {
+            curfunc.getStart().prepend(new FuncQuad(CALL, null, "___init", new ImmOprand(0L)));
+        }
+
+        // curRetLabel = null;
         completeFunc();
     }
 
     @Override public void visit(ConstructFuncNode node) throws Exception {
+        if (inLineDepth > 0) {
+            curRetLabel = createNewLabel();
+            retLabels.push(curRetLabel);
+            curVarKind = 2;
+            visit(node.childs.get(node.childs.size() - 1));
+            if (curlabel != null) {
+                addQuad(curlabel, new JumpQuad(JMP, retLabels.peek()));
+            }
+            curlabel = retLabels.peek();
+            retLabels.pop();
+            return;
+        }
+
         createNewFunc(node.id + "_" + node.id);
         curRetLabel = createNewLabel();
+        retLabels.push(curRetLabel);
+
         curVarKind = 2;
-        addQuad(curlabel, new ArthQuad(MOV, getReg(inClass + "_this", true), args.get(0)));
-        curfunc.parameters.add(getReg(inClass + "_this", true));
+        addQuad(curlabel, new ArthQuad(MOV, getReg(node.id + "_this", true, inLineDepth), args.get(0)));
+        curfunc.parameters.add(getReg(node.id + "_this", true, inLineDepth));
+
+        globalVarDefined.clear();
+        globalVarUsed.clear();
         for (int i = 0 ; i < node.childs.size() ; ++ i) {
             Node child = node.childs.get(i);
             // visit(child);
             if (i < node.childs.size() - 1) {
-                child.reg = getReg(child.reName, false);
+                child.reg = getReg(child.reName, false, inLineDepth);
                 curfunc.parameters.add(child.reg);
                 if (i < 5) {
                     addQuad(curlabel, new ArthQuad(MOV, child.reg, args.get(i + 1)));
@@ -266,9 +369,12 @@ public class IRBuilder extends ASTVisitor {
             }
         }
 
-        addQuad(curlabel, new JumpQuad(JMP, curRetLabel));
-        curfunc.setEnd(curRetLabel);
-        curRetLabel = null;
+        addQuad(curlabel, new JumpQuad(JMP, retLabels.peek()));
+        curfunc.setEnd(retLabels.peek());
+        solveGlobalVar();
+
+        retLabels.pop();
+        // curRetLabel = null;
         completeFunc();
     }
 
@@ -280,7 +386,12 @@ public class IRBuilder extends ASTVisitor {
         }
     }
 
-    // @Override public void visit(ExprStateNode node) throws Exception { }
+    @Override public void visit(ExprStateNode node) throws Exception {
+        // if (node.childs.get(0).type instanceof BoolTypeDef) {
+            node.childs.get(0).setNotUse();
+        // }
+        visitChild(node);
+    }
 
     @Override public void visit(CondStateNode node) throws Exception {
         CFGNode newTrueLabel = createNewLabel(), newFalseLabel, newNextLabel = createNewLabel();
@@ -366,6 +477,7 @@ public class IRBuilder extends ASTVisitor {
                 visit(loopExp);
                 popTFLabel();
             } else {
+                loopExp.setNotUse();
                 visit(loopExp);
                 addQuad(curlabel, new JumpQuad(JMP, condLabel));
             }
@@ -403,15 +515,25 @@ public class IRBuilder extends ASTVisitor {
     @Override public void visit(ReturnStateNode node) throws Exception {
         if (node.childs.isEmpty()) {
             // addQuad(curlabel, new FuncQuad(RET, null));
-            addQuad(curlabel, new JumpQuad(JMP, curRetLabel));
+            addQuad(curlabel, new JumpQuad(JMP, retLabels.peek()));
         } else {
             Node expr = node.childs.get(0);
             if (expr.type instanceof BoolTypeDef) {
                 CFGNode newTrueLabel = createNewLabel(), newFalseLabel = createNewLabel();
-                addQuad(newTrueLabel, new FuncQuad(RET, new ImmOprand(1L)));
-                addQuad(newTrueLabel ,new JumpQuad(JMP, curRetLabel));
-                addQuad(newFalseLabel, new FuncQuad(RET, new ImmOprand(0L)));
-                addQuad(newFalseLabel, new JumpQuad(JMP, curRetLabel));
+                if (inLineDepth > 0) {
+                    addQuad(newTrueLabel, new ArthQuad(MOV, retRegs.peek(), new ImmOprand(1L)));
+                } else {
+                    addQuad(newTrueLabel, new FuncQuad(RET, new ImmOprand(1L)));
+                }
+                addQuad(newTrueLabel ,new JumpQuad(JMP, retLabels.peek()));
+
+                if (inLineDepth > 0) {
+                    addQuad(newFalseLabel, new ArthQuad(MOV, retRegs.peek(), new ImmOprand(0L)));
+                } else {
+                    addQuad(newFalseLabel, new FuncQuad(RET, new ImmOprand(0L)));
+                }
+
+                addQuad(newFalseLabel, new JumpQuad(JMP, retLabels.peek()));
 
                 pushTFLabel(newTrueLabel, newFalseLabel);
                 expr.setNotUse();
@@ -419,8 +541,12 @@ public class IRBuilder extends ASTVisitor {
                 popTFLabel();
             } else {
                 visit(expr);
-                addQuad(curlabel, new FuncQuad(RET, expr.reg));
-                addQuad(curlabel, new JumpQuad(JMP, curRetLabel));
+                if (inLineDepth > 0) {
+                    addQuad(curlabel, new ArthQuad(MOV, retRegs.peek(), expr.reg));
+                } else {
+                    addQuad(curlabel, new FuncQuad(RET, expr.reg));
+                }
+                addQuad(curlabel, new JumpQuad(JMP, retLabels.peek()));
             }
         }
         curlabel = null;
@@ -479,7 +605,7 @@ public class IRBuilder extends ASTVisitor {
         }
     }
 
-    void genStrcatFunc(Oprand l, Oprand r) {
+    void genStrcatFunc(Oprand l, Oprand r) throws Exception {
         ArrayList <Oprand> params = new ArrayList<>();
         params.add(l);
         params.add(r);
@@ -675,6 +801,7 @@ public class IRBuilder extends ASTVisitor {
 
         } else if (node.id.equals("=")){
             lson.setLeftVal();
+            lson.setNotUse();
             visit(lson);
             if (rson.type instanceof BoolTypeDef) {
                 CFGNode nowLabel = createNewLabel();
@@ -738,6 +865,7 @@ public class IRBuilder extends ASTVisitor {
             }
         } else {
             node.reg = newTempVar(checkAddrType(node.type));
+            child.setLeftVal();
             visit(child);
             switch (node.id) {
                 case "++":
@@ -764,12 +892,13 @@ public class IRBuilder extends ASTVisitor {
     @Override public void visit(RUnaryExprNode node) throws Exception {
         node.reg = newTempVar(checkAddrType(node.type));
         Node child = node.childs.get(0);
+        child.setLeftVal();
         visit(child);
         if (node.id.equals("++")) {
-            addQuad(curlabel, new ArthQuad(MOV, node.reg, child.reg));
+            if (node.isWillUse()) addQuad(curlabel, new ArthQuad(MOV, node.reg, child.reg));
             addQuad(curlabel, new ArthQuad("add", child.reg, child.reg, new ImmOprand(1L)));
         } else {
-            addQuad(curlabel, new ArthQuad(MOV, node.reg, child.reg));
+            if (node.isWillUse()) addQuad(curlabel, new ArthQuad(MOV, node.reg, child.reg));
             addQuad(curlabel, new ArthQuad("sub", child.reg, child.reg, new ImmOprand(1L)));
         }
     }
@@ -781,9 +910,11 @@ public class IRBuilder extends ASTVisitor {
                 genNewFunc(new ImmOprand(256L), node.reg);
             } else {
                 genNewFunc(new ImmOprand(((OtherTypeDef)node.type).getClassSize() * 8), node.reg);
-                ArrayList <Oprand> params = new ArrayList<>();
-                params.add(node.reg);
-                genFuncQuad(((OtherTypeDef) node.type).getTypeId() + "_" + ((OtherTypeDef) node.type).getTypeId(), params, false, null);
+                if (funcNode.containsKey(((OtherTypeDef) node.type).getTypeId() + "_" + ((OtherTypeDef) node.type).getTypeId())) {
+                    ArrayList<Oprand> params = new ArrayList<>();
+                    params.add(node.reg);
+                    genFuncQuad(((OtherTypeDef) node.type).getTypeId() + "_" + ((OtherTypeDef) node.type).getTypeId(), params, false, null);
+                }
             }
             return;
         }
@@ -801,7 +932,7 @@ public class IRBuilder extends ASTVisitor {
         }
         addQuad(curlabel, new ArthQuad(MOV, new MemOprand(node.reg, null, null), expr.reg));
 
-        if (eleType.childs.isEmpty() && (!(eleType.type instanceof StringTypeDef))) return;
+        if (eleType.childs.isEmpty() && (!(eleType.type instanceof SpecialTypeDef))) return;
         if (!eleType.childs.isEmpty() && eleType.childs.get(0) instanceof EmptyExprNode) return;
 
         Oprand i = newTempVar(false);
@@ -828,7 +959,7 @@ public class IRBuilder extends ASTVisitor {
         ArrayList <Oprand> params = new ArrayList<>();
         if (!node.inClass.equals("")) {
             funcName = node.inClass + "_" + funcName;
-            params.add(getReg(node.inClass + "_this", false));
+            params.add(getReg(node.inClass + "_this", false, inLineDepth));
         }
 
         for (int i = 0 ; i < node.childs.size() ; ++ i) {
@@ -858,7 +989,7 @@ public class IRBuilder extends ASTVisitor {
     }
 
     void checkBool(Node node) {
-        if (node.type instanceof BoolTypeDef && (!trueLabels.isEmpty())) {
+        if (node.isWillUse() && node.type instanceof BoolTypeDef && (!trueLabels.isEmpty())) {
             CFGNode newTrueLabel = trueLabels.peek(), newFalseLabel = falseLabels.peek();
             addQuad(curlabel, new CompQuad(node.reg, new ImmOprand(1L)));
             addQuad(curlabel, new JumpQuad("je", newTrueLabel, newFalseLabel));
@@ -867,19 +998,26 @@ public class IRBuilder extends ASTVisitor {
 
     @Override public void visit(VarEleExprNode node) throws Exception {
         if (node.id.equals("this")) {
-            node.reg = getReg(node.reName, false);
+            node.reg = getReg(node.reName, false, inLineDepth);
             return;
         }
         if (!node.inClass.equals("")) {
             Oprand tmp = newTempVar(true);
-            Oprand base = getReg(node.inClass + "_this", false);
-            Oprand offset = new ImmOprand(curClassType.getVarIdx(node.reName));
+            Oprand base = getReg(node.inClass + "_this", false, inLineDepth);
+            Oprand offset = new ImmOprand(((ClassTypeDef)genScope.findItem(node.inClass)).getVarIdx(node.reName));
 
             node.reg = new MemOprand(base, offset, new ImmOprand(8L));
         } else if (checkGlobalVar(node.reName)) {
-            node.reg = new GlobalMemOprand(getReg(node.reName, false));
+            node.reg = getReg(node.reName, false, -1);
+            if (node.isLeftVal() && (!(node.type instanceof StringTypeDef))) {
+                globalVarDefined.add(node.reg);
+            }
+            if (node.isWillUse()) {
+                globalVarUsed.add(node.reg);
+            }
+
         } else {
-            node.reg = getReg(node.reName, false);
+            node.reg = getReg(node.reName, false, inLineDepth);
         }
         if (!node.isLeftVal()) {
             checkBool(node);
@@ -910,6 +1048,7 @@ public class IRBuilder extends ASTVisitor {
             return;
         }
         if (obj instanceof FunEleExprNode) {
+            // System.out.println("objNode");
             ArrayList <Oprand> params = new ArrayList<>();
             params.add(child.reg);
             for (int i = 0 ; i < obj.childs.size() ; ++ i) {

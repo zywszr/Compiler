@@ -79,7 +79,8 @@ public class RegisterSet {
         args.add(r9);
     }
 
-    public static RegOprand getReg(String name, boolean isTemp) {
+    public static RegOprand getReg(String name, boolean isTemp, int depth) {
+        if (depth != -1) name += "_" + Integer.toString(depth);
         if (virRegs.containsKey(name)) {
             return virRegs.get(name);
         } else {

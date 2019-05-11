@@ -8,6 +8,7 @@ import org.antlr.v4.runtime.tree.*;
 import org.antlr.v4.runtime.*;
 
 import java.io.*;
+import java.util.HashMap;
 
 public class Main {
     public static void main (String[] args) throws IOException, Exception {
@@ -28,7 +29,8 @@ public class Main {
 
         BuildScope.programScopeBuild(ASTroot);
 
-        SemanticChecker checker = new SemanticChecker(BuildScope.rootScope);
+        HashMap <String, Node> funcNode = new HashMap<>();
+        SemanticChecker checker = new SemanticChecker(BuildScope.rootScope, funcNode);
         try {
             ASTroot.accept(checker);
         } catch (SyntaxError error) {
@@ -38,9 +40,12 @@ public class Main {
 
         RegisterSet.init();
 
-        IRBuilder buildIR = new IRBuilder();
+        IRBuilder buildIR = new IRBuilder(BuildScope.rootScope, funcNode);
         LineIR lineIR = buildIR.buildLineIR(ASTroot);
         // lineIR.print();
+
+        GlobalSolver solveGlobal = new GlobalSolver(lineIR);
+        solveGlobal.work();
 
         IRCorrector correctIR = new IRCorrector(lineIR, buildIR.getTmpVarIdx());
         correctIR.work();
@@ -53,9 +58,9 @@ public class Main {
         CodeGen genCode = new CodeGen(lineIR);
         genCode.work();
 
-    /*    PrintStream psOld = System.out;
-        System.setOut(new PrintStream(new File("test_lyc.asm")));
-     */   genCode.print();
-        //   System.setOut(psOld);
+        // PrintStream psOld = System.out;
+        // System.setOut(new PrintStream(new File("../test_lyc.asm")));
+        genCode.print();
+        // System.setOut(psOld);
     }
 }

@@ -1,12 +1,10 @@
 package BackEnd;
 
 import IRClass.*;
-import OprandClass.ImmOprand;
-import OprandClass.MemOprand;
-import OprandClass.Oprand;
-import OprandClass.RegOprand;
+import OprandClass.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import static BackEnd.RegisterSet.*;
 import static IRClass.Inst.*;
@@ -27,7 +25,7 @@ public class IRCorrector {
 
     RegOprand newTempVar(boolean isAddr) {
         tmpVarIdx += 1;
-        return getReg((isAddr ? "A" : "V") + "_" + Integer.toString(tmpVarIdx), true);
+        return getReg((isAddr ? "A" : "V") + "_" + Integer.toString(tmpVarIdx), true, 0);
     }
 
     public int getTmpVarIdx() {
@@ -172,7 +170,16 @@ public class IRCorrector {
         }
     }
 
-    public void solveFunc(FuncQuad q) {
+    boolean checkCall(String name) {
+        for (FuncFrame func : lineIR.getFuncs()) {
+            if ((!func.getName().equals("___init")) && func.getName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void solveFunc(FuncQuad q) {
         switch (q.op) {
             case "param":
                 long idx = ((ImmOprand) q.getR2()).getVal();
@@ -183,6 +190,27 @@ public class IRCorrector {
                 }
                 break;
             case "call":
+                if (checkCall(q.funcName)) {
+                    HashSet <Oprand> set = new HashSet<>(curfunc.globalVarUsed);
+                    set.retainAll(lineIR.stringToFunc.get(q.funcName).callVarDefined);
+                    for (Oprand var : set) {
+                        GlobalMemOprand mem = new GlobalMemOprand(var);
+                        var.setMemPos(mem);
+                        q.append(new ArthQuad(MOV, var, mem));
+                    }
+
+                    set.addAll(lineIR.stringToFunc.get(q.funcName).callVarUsed);
+                    set.retainAll(curfunc.globalVarDefined);
+
+                    for (Oprand var : set) {
+                        // System.out.println(((RegOprand) var).getRegName());
+
+                        GlobalMemOprand mem = new GlobalMemOprand(var);
+                        var.setMemPos(mem);
+                        q.prepend(new ArthQuad(MOV, mem, var));
+                    }
+
+                }
                 if (q.getRt() != null) {
                     q.append(new ArthQuad(MOV, q.getRt(), rax));
                     q.setRt(rax);
@@ -199,6 +227,10 @@ public class IRCorrector {
             RegOprand tmp = newTempVar(false);
             q.prepend(new ArthQuad(MOV, tmp, q.getR1()));
             q.setR1(tmp);
+        } else if((q.getRt() instanceof RegOprand) && (q.getR1() instanceof RegOprand)) {
+            if (((RegOprand) q.getRt()).getRegName().equals(((RegOprand) q.getR1()).getRegName())) {
+                q.remove();
+            }
         }
     }
 
@@ -256,8 +288,17 @@ public class IRCorrector {
             }
 
             for (Quad q = curblock.head ; q != null ; q = q.nxt) {
-                if (q instanceof ArthQuad && q.op.equals(MOV)) {
-                    solveMove((ArthQuad) q);
+                if (q instanceof ArthQuad) {
+                    if (q.op.equals(MOV)) {
+                        solveMove((ArthQuad) q);
+                    } else if (q.op.equals(ADD)) {
+                        if ((q.getRt() instanceof RegOprand) && (q.getR1() instanceof ImmOprand)) {
+                            if (((ImmOprand) q.getR1()).getVal() == 1L) {
+                                q.op = INC;
+                                q.setR1(null);
+                            }
+                        }
+                    }
                 }
             }
         }

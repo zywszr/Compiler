@@ -25,7 +25,12 @@ public class CFGNode {
 
     public void prepend(Quad q) {
         if (q != null) q.block = this;
-        head.prepend(q);
+        if (head == null) {
+            q.pre = q.nxt = null;
+            head = tail = q;
+        } else {
+            head.prepend(q);
+        }
     }
 
     public void append(Quad q) {

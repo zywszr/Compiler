@@ -17,6 +17,10 @@ public class FuncFrame {
     String name;
     HashMap <String, Long> varIdx;
     Long varSize;
+    public HashSet <Oprand> globalVarUsed;
+    public HashSet <Oprand> globalVarDefined;
+    public HashSet <Oprand> callVarUsed;
+    public HashSet <Oprand> callVarDefined;
 
     public LinkedList <StackSlot> params = new LinkedList<>();
     public LinkedList <StackSlot> temps = new LinkedList<>();
@@ -30,7 +34,6 @@ public class FuncFrame {
         return siz;
     }
 
-
     public FuncFrame(String _name) {
         nodes = new ArrayList<>();
         ends = new ArrayList<>();
@@ -40,6 +43,10 @@ public class FuncFrame {
         name = _name;
         varIdx = new HashMap<>();
         varSize = 0L;
+        globalVarUsed = new HashSet<>();
+        globalVarDefined = new HashSet<>();
+        callVarUsed = new HashSet<>();
+        callVarDefined = new HashSet<>();
         parameters = new LinkedList<>();
         phyRegs = new HashSet<>();
     }
@@ -54,6 +61,7 @@ public class FuncFrame {
     }
 
     public CFGNode getStart() {
+        if (start == null) return nodes.get(0);
         return start;
     }
 
@@ -114,5 +122,13 @@ public class FuncFrame {
 
     public String getName() {
         return name;
+    }
+
+    public void setGlobalVarUsed(HashSet <Oprand> set) {
+        globalVarUsed = new HashSet<>(set);
+    }
+
+    public void setGlobalVarDefined(HashSet <Oprand> set) {
+        globalVarDefined = new HashSet<>(set);
     }
 }

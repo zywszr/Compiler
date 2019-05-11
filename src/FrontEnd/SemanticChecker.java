@@ -6,19 +6,24 @@ import OprandClass.*;
 
 import javafx.util.Pair;
 
+import java.util.HashMap;
+
 public class SemanticChecker extends ASTVisitor {
     private GlobalScope<TypeDef> rootScope;
 //  private ClassScope<TypeDef> curClassScope;
     private int loopNum;
     private String curClass;
     private TypeDef funcRetType;
+    public HashMap <String, Node> funcNode;
 
-    public SemanticChecker(GlobalScope<TypeDef> root) {
+    public SemanticChecker(GlobalScope<TypeDef> root, HashMap <String, Node> _funcNode) {
         rootScope = root;
 //      curClassScope = null;
         loopNum = 0;
         curClass = "";
         funcRetType = null;
+        funcNode = _funcNode;
+
     }
 
     boolean checkTypeExist(TypeDef type) {
@@ -103,7 +108,12 @@ public class SemanticChecker extends ASTVisitor {
         funcRetType = curNode.type;
         visitChild(curNode);
         funcRetType = null;
-        if (curNode.belong instanceof ClassScope) curNode.inClass = curClass;
+        if (curNode.belong instanceof ClassScope) {
+            curNode.inClass = curClass;
+            funcNode.put(curNode.inClass + "_" + curNode.id, curNode);
+        } else {
+            funcNode.put(curNode.id, curNode);
+        }
     }
 
     @Override void visit(ConstructFuncNode curNode) throws Exception {
@@ -112,6 +122,7 @@ public class SemanticChecker extends ASTVisitor {
         visitChild(curNode);
         funcRetType = null;
         curNode.inClass = curClass;
+        funcNode.put(curClass + "_" + curClass, curNode);
     }
 
     @Override void visit(CondStateNode curNode) throws Exception {

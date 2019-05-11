@@ -12,7 +12,7 @@ public abstract class Node {
     String id;
     String reName;
     TypeDef type;
-    String inClass; // any use?
+    String inClass;
     String strLiter;
     Oprand reg;
     PositionDef pos;

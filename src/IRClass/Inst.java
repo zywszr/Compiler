@@ -23,6 +23,7 @@ public class Inst {
 
     public static String NOT = "not";
     public static String NEG = "neg";
+    public static String INC = "inc";
 
     public static String CMP = "cmp";
 
