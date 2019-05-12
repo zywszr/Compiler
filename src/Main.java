@@ -12,7 +12,7 @@ import java.util.HashMap;
 
 public class Main {
     public static void main (String[] args) throws IOException, Exception {
-        // InputStream in = new FileInputStream("test.txt");
+        //InputStream in = new FileInputStream("test.txt");
         ANTLRInputStream input = new ANTLRInputStream(System.in);
         MxStarLexer lexer = new MxStarLexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -58,14 +58,14 @@ public class Main {
         RegisterAllocater allocateReg = new RegisterAllocater(lineIR, correctIR.getTmpVarIdx());
         allocateReg.work();
 
-        deadCode.work_after_allocate();
-
         CodeGen genCode = new CodeGen(lineIR);
         genCode.work();
 
-        //PrintStream psOld = System.out;
-        //System.setOut(new PrintStream(new File("../test_lyc.asm")));
+        deadCode.work_after_allocate();
+
+        // PrintStream psOld = System.out;
+        // System.setOut(new PrintStream(new File("../test_lyc.asm")));
         genCode.print();
-        //System.setOut(psOld);
+        // System.setOut(psOld);
     }
 }

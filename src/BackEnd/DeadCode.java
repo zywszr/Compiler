@@ -35,9 +35,12 @@ public class DeadCode {
                 }
                 for (Quad q = block.head ; q != null ; q = q.nxt) {
                     if (q.op.equals(MOV)) {
-
                         if (q.pre != null && q.pre.op.equals(MOV)) {
-
+                            String rt1 = q.getRt().getCode(), r11 = q.getR1().getCode();
+                            String rt2 = q.pre.getRt().getCode(), r12 = q.pre.getR1().getCode();
+                            if (rt1.equals(r12) && r11.equals(rt2)) {
+                                q.remove();
+                            }
                         }
                     }
                 }

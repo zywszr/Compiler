@@ -190,18 +190,18 @@ public class IRCorrector {
                 }
                 break;
             case "call":
-                /*if (checkCall(q.funcName)) {
+                if (checkCall(q.funcName)) {
                     HashSet <Oprand> set = new HashSet<>(curfunc.globalVarUsed);
-                    set.retainAll(lineIR.stringToFunc.get(q.funcName).callVarDefined);
+                    //set.retainAll(lineIR.stringToFunc.get(q.funcName).callVarDefined);
                     for (Oprand var : set) {
                         GlobalMemOprand mem = new GlobalMemOprand(var);
                         var.setMemPos(mem);
                         q.append(new ArthQuad(MOV, var, mem));
                     }
 
-                    //set = new HashSet<>(curfunc.globalVarDefined);
-                    set.addAll(lineIR.stringToFunc.get(q.funcName).callVarUsed);
-                    set.retainAll(curfunc.globalVarDefined);
+                    set = new HashSet<>(curfunc.globalVarDefined);
+                    //set.addAll(lineIR.stringToFunc.get(q.funcName).callVarUsed);
+                    //set.retainAll(curfunc.globalVarDefined);
 
                     for (Oprand var : set) {
                         // System.out.println(((RegOprand) var).getRegName());
@@ -211,7 +211,7 @@ public class IRCorrector {
                         q.prepend(new ArthQuad(MOV, mem, var));
                     }
 
-                }*/
+                }
                 if (q.getRt() != null) {
                     q.append(new ArthQuad(MOV, q.getRt(), rax));
                     q.setRt(rax);
