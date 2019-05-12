@@ -4,217 +4,7 @@ public class PreCode {
     static public String text = "\n" +
             "SECTION .text\n" +
             "\n" +
-    /*        "__hasValue:\n" +
-            "        mov     rax, rdi\n" +
-            "        mov     rdx, qword 1323E34A2B10BF67H\n" +
-            "        imul    rdx\n" +
-            "        mov     rax, rdi\n" +
-            "        sar     rax, 63\n" +
-            "        sar     rdx, 3\n" +
-            "        sub     rdx, rax\n" +
-            "        mov     eax, 107\n" +
-            "        imul    rdx, rax\n" +
-            "        mov     rax, rdi\n" +
-            "        sub     rax, rdx\n" +
-            "        mov     rdx, rax\n" +
-            "        xor     eax, eax\n" +
             "\n" +
-            "        cmp     qword [abs __real_addr+rdx*8], rdi\n" +
-            "        jz      L_002\n" +
-            "L_001:\n" +
-            "\n" +
-            "        ret\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "ALIGN   8\n" +
-            "L_002:  cmp     rsi, 209\n" +
-            "        ja      L_001\n" +
-            "        imul    rdx, rdx, 210\n" +
-            "        add     rsi, rdx\n" +
-            "\n" +
-            "        mov     rax, qword [abs __has+rsi*8]\n" +
-            "        ret\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "ALIGN   8\n" +
-            "\n" +
-            "__getValue:\n" +
-            "        mov     rax, rdi\n" +
-            "        mov     rdx, qword 1323E34A2B10BF67H\n" +
-            "        imul    rdx\n" +
-            "        mov     rax, rdi\n" +
-            "        sar     rax, 63\n" +
-            "        sar     rdx, 3\n" +
-            "        sub     rdx, rax\n" +
-            "        mov     eax, 107\n" +
-            "        imul    rdx, rax\n" +
-            "        sub     rdi, rdx\n" +
-            "        imul    rdi, rdi, 210\n" +
-            "        add     rsi, rdi\n" +
-            "\n" +
-            "        mov     rax, qword [abs __value+rsi*8]\n" +
-            "        ret\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "ALIGN   8\n" +
-            "\n" +
-            "__setValue:\n" +
-            "        cmp     rsi, 209\n" +
-            "        mov     r9, rdx\n" +
-            "        ja      L_008\n" +
-            "        mov     r8, qword 1323E34A2B10BF67H\n" +
-            "        mov     rax, rdi\n" +
-            "        mov     r10d, 107\n" +
-            "        imul    r8\n" +
-            "        mov     rax, rdi\n" +
-            "        sar     rax, 63\n" +
-            "        mov     r8, rdx\n" +
-            "        sar     r8, 3\n" +
-            "        sub     r8, rax\n" +
-            "        mov     rax, rdi\n" +
-            "        imul    r8, r10\n" +
-            "        sub     rax, r8\n" +
-            "        mov     r8, rax\n" +
-            "\n" +
-            "        mov     rax, qword [abs __real_addr+rax*8]\n" +
-            "        cmp     rax, rdi\n" +
-            "        jz      L_007\n" +
-            "        test    rax, rax\n" +
-            "        je      L_012\n" +
-            "        imul    rax, r8, 1680\n" +
-            "        mov     edx, 1680\n" +
-            "\n" +
-            "        lea     rdi, [abs __has+rax]\n" +
-            "        test    dil, 01H\n" +
-            "        jne     L_013\n" +
-            "L_003:  test    dil, 02H\n" +
-            "        jne     L_014\n" +
-            "L_004:  test    dil, 04H\n" +
-            "        jne     L_015\n" +
-            "L_005:  mov     ecx, edx\n" +
-            "        xor     eax, eax\n" +
-            "        shr     ecx, 3\n" +
-            "        test    dl, 04H\n" +
-            "        rep stosq\n" +
-            "        jnz     L_011\n" +
-            "        test    dl, 02H\n" +
-            "        jnz     L_010\n" +
-            "L_006:  and     edx, 01H\n" +
-            "        jnz     L_009\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "ALIGN   8\n" +
-            "L_007:  mov     rax, r9\n" +
-            "        imul    r8, r8, 210\n" +
-            "        add     rsi, r8\n" +
-            "\n" +
-            "        mov     qword [abs __has+rsi*8], 1\n" +
-            "\n" +
-            "        mov     qword [abs __value+rsi*8], r9\n" +
-            "        ret\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "ALIGN   8\n" +
-            "L_008:\n" +
-            "\n" +
-            "        ret\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "ALIGN   8\n" +
-            "L_009:  mov     byte [rdi], 0\n" +
-            "        jmp     L_007\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "ALIGN   8\n" +
-            "L_010:  xor     eax, eax\n" +
-            "        add     rdi, 2\n" +
-            "        mov     word [rdi-2H], ax\n" +
-            "        and     edx, 01H\n" +
-            "        jz      L_007\n" +
-            "        jmp     L_009\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "ALIGN   8\n" +
-            "L_011:  mov     dword [rdi], 0\n" +
-            "        add     rdi, 4\n" +
-            "        test    dl, 02H\n" +
-            "        jz      L_006\n" +
-            "        jmp     L_010\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "ALIGN   8\n" +
-            "L_012:\n" +
-            "\n" +
-            "        mov     qword [abs __real_addr+r8*8], rdi\n" +
-            "        jmp     L_007\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "ALIGN   8\n" +
-            "L_013:\n" +
-            "\n" +
-            "        mov     byte [abs __has+rax], 0\n" +
-            "        add     rdi, 1\n" +
-            "        mov     dl, -113\n" +
-            "        jmp     L_003\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "ALIGN   8\n" +
-            "L_014:  xor     ecx, ecx\n" +
-            "        add     rdi, 2\n" +
-            "        sub     edx, 2\n" +
-            "        mov     word [rdi-2H], cx\n" +
-            "        jmp     L_004\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "ALIGN   8\n" +
-            "L_015:  mov     dword [rdi], 0\n" +
-            "        sub     edx, 4\n" +
-            "        add     rdi, 4\n" +
-            "        jmp     L_005\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-    */        "\n" +
             "ALIGN   16\n" +
             "\n" +
             "print:\n" +
@@ -225,20 +15,11 @@ public class PreCode {
             "        jmp     __printf_chk\n" +
             "\n" +
             "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
             "ALIGN   16\n" +
             "\n" +
             "println:\n" +
             "        add     rdi, 8\n" +
             "        jmp     puts\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
             "\n" +
             "\n" +
             "ALIGN   8\n" +
@@ -285,11 +66,6 @@ public class PreCode {
             "        ret\n" +
             "\n" +
             "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
             "ALIGN   16\n" +
             "\n" +
             "getInt:\n" +
@@ -330,21 +106,11 @@ public class PreCode {
             "        ret\n" +
             "\n" +
             "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
             "ALIGN   16\n" +
             "\n" +
             "string_length:\n" +
             "        mov     rax, qword [rdi]\n" +
             "        ret\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
             "\n" +
             "\n" +
             "ALIGN   16\n" +
@@ -535,15 +301,10 @@ public class PreCode {
             "        ret\n" +
             "\n" +
             "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
             "ALIGN   16\n" +
             "L_019:  movsxd  rdi, edi\n" +
             "        xor     ecx, ecx\n" +
             "        add     rbp, rdi\n" +
-            "\n" +
-            "\n" +
             "\n" +
             "\n" +
             "ALIGN   16\n" +
@@ -553,11 +314,6 @@ public class PreCode {
             "        cmp     ebx, ecx\n" +
             "        jg      L_020\n" +
             "        jmp     L_018\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
             "\n" +
             "\n" +
             "ALIGN   16\n" +
@@ -572,8 +328,6 @@ public class PreCode {
             "        cmp     al, 9\n" +
             "        mov     eax, 0\n" +
             "        ja      L_023\n" +
-            "\n" +
-            "\n" +
             "\n" +
             "\n" +
             "ALIGN   8\n" +
@@ -593,9 +347,6 @@ public class PreCode {
             "        ret\n" +
             "\n" +
             "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
             "ALIGN   8\n" +
             "L_024:  lea     rcx, [rdi+9H]\n" +
             "        movsx   edx, byte [rdi+9H]\n" +
@@ -609,11 +360,6 @@ public class PreCode {
             "string_ord:\n" +
             "        movsx   rax, byte [rdi+rsi+8H]\n" +
             "        ret\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
             "\n" +
             "\n" +
             "ALIGN   16\n" +
@@ -778,8 +524,6 @@ public class PreCode {
             "        xor     ecx, ecx\n" +
             "\n" +
             "\n" +
-            "\n" +
-            "\n" +
             "ALIGN   8\n" +
             "L_027:  movzx   edi, byte [r12+rdx+7H]\n" +
             "        add     rcx, rax\n" +
@@ -800,13 +544,8 @@ public class PreCode {
             "        ret\n" +
             "\n" +
             "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
             "ALIGN   8\n" +
             "L_029:  xor     edx, edx\n" +
-            "\n" +
-            "\n" +
             "\n" +
             "\n" +
             "ALIGN   8\n" +
@@ -821,11 +560,6 @@ public class PreCode {
             "        jmp     L_028\n" +
             "\n" +
             "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
-            "\n" +
             "ALIGN   16\n" +
             "\n" +
             "string_compare:\n" +
@@ -838,24 +572,10 @@ public class PreCode {
             "        ret\n" +
             "\n" +
             "\n" +
+            "SECTION .bss    align=32\n" +
             "\n" +
-       /*     "SECTION .data   \n" +
-            "\n" +
-            "\n" +
-      */      "SECTION .bss    align=32\n" +
-            "\n" +
-       /*     "__value:\n" +
-            "        resq    22472\n" +
-            "\n" +
-            "__has:\n" +
-            "        resq    22472\n" +
-            "\n" +
-            "__real_addr:\n" +
-            "        resq    108\n" +
-            "\n" +
-       */     "__buffer.3442:\n" +
+            "__buffer.3442:\n" +
             "        resb    1048576\n" +
-            "\n" +
             "\n" +
             "\n" +
             "SECTION .rodata.str1.1 \n" +
@@ -865,6 +585,7 @@ public class PreCode {
             "\n" +
             "L_033:\n" +
             "        db 25H, 6CH, 64H, 00H";
+
     static public String roData = "\n" +
             "L_021:\n" +
             "        db 25H, 6CH, 64H, 00H\n" +

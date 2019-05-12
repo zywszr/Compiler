@@ -776,10 +776,17 @@ public class IRBuilder extends ASTVisitor {
                     addQuad(curlabel, new ArthQuad("div", node.reg, lson.reg, rson.reg));
                     break;
                 case "%":
-                    if (rson.reg instanceof ImmOprand && ((ImmOprand) rson.reg).getVal() == 10000L) {
+                    if (rson.reg instanceof ImmOprand) {
+                        long bit = ((ImmOprand) rson.reg).getVal();
+                        long mod = bit, num = 0L;
+                        while ((bit & 1) == 0) {
+                            bit >>= 1;
+                            ++ num;
+                        }
+                        long inv = ((1L << 32) - 1) / bit + 1;
                         Oprand reg = newTempVar(false);
-                        addQuad(curlabel, new ArthQuad(MUL, reg, lson.reg, new ImmOprand(6871948L)));
-                        addQuad(curlabel, new ArthQuad(SAR, reg, reg, new ImmOprand(36L)));
+                        addQuad(curlabel, new ArthQuad(MUL, reg, lson.reg, new ImmOprand(inv)));
+                        addQuad(curlabel, new ArthQuad(SAR, reg, reg, new ImmOprand(32L + num)));
                         addQuad(curlabel, new ArthQuad(MUL, reg, reg, rson.reg));
                         addQuad(curlabel, new ArthQuad(SUB, node.reg, lson.reg, reg));
                     } else {

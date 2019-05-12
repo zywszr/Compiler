@@ -83,9 +83,9 @@ public class CodeGen {
             head.append(new PushQuad(reg));
         }
         CFGNode end = curfunc.getEnd();
-        if (end == null) {
+        /* if (end == null) {
             System.out.println("*********************" + curfunc.getName());
-        }
+        }*/
         for (Oprand reg : callees) {
             end.tail.prepend(new PopQuad(reg));
         }
@@ -100,19 +100,6 @@ public class CodeGen {
 
     void initPrint() {
         globals.addAll(lineIR.getGlobal());
-        /*globals.add("string_substring");
-        globals.add("string_parseInt");
-        globals.add("string_ord");
-        globals.add("string_strcpy");
-        globals.add("string_strcat");
-        globals.add("string_length"); // may be the same
-        globals.add("print");
-        globals.add("println");
-        globals.add("getString");
-        globals.add("getInt");
-        globals.add("toString");
-        */
-
 
         globals.add("print");
         globals.add("println");
@@ -125,13 +112,6 @@ public class CodeGen {
         globals.add("string_ord");
         globals.add("string_strcat");
         globals.add("string_Compare");
-    /*    globals.add("__hasValue");
-        globals.add("__getValue");
-        globals.add("__setValue");
-        globals.add("__value");
-        globals.add("__has");
-        globals.add("__real_addr");
-    */
 
         externs.add("strcmp");
         externs.add("__sprintf_chk");
@@ -140,20 +120,7 @@ public class CodeGen {
         externs.add("__isoc99_scanf");
         externs.add("puts");
         externs.add("__printf_chk");
-        /*
-        externs.add("strcmp");
-        externs.add("__sprintf_chk");
-        externs.add("_IO_getc");
-        externs.add("stdin");
-        externs.add("puts");
-        externs.add("scanf");
-        externs.add("_IO_putc");
-        externs.add("stdout");
-        externs.add("__stack_chk_fail");
-        externs.add("sscanf");
-        externs.add("memcpy");
-        externs.add("malloc");
-        */
+
     }
 
     public void print() {
@@ -198,8 +165,6 @@ public class CodeGen {
         }
 
 
-
-        //codes.add(PreCode.roData);
         codes.add("");
 
         for (int i = 0 ; i < codes.size() ; ++ i) {
