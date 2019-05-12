@@ -52,15 +52,20 @@ public class Main {
 
         // lineIR.printCode();
 
+        DeadCode deadCode = new DeadCode(lineIR);
+        deadCode.work_before_allocate();
+
         RegisterAllocater allocateReg = new RegisterAllocater(lineIR, correctIR.getTmpVarIdx());
         allocateReg.work();
+
+        deadCode.work_after_allocate();
 
         CodeGen genCode = new CodeGen(lineIR);
         genCode.work();
 
-        // PrintStream psOld = System.out;
-        // System.setOut(new PrintStream(new File("../test_lyc.asm")));
+        //PrintStream psOld = System.out;
+        //System.setOut(new PrintStream(new File("../test_lyc.asm")));
         genCode.print();
-        // System.setOut(psOld);
+        //System.setOut(psOld);
     }
 }

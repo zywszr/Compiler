@@ -22,6 +22,25 @@ public class MemOprand extends AddrOprand {
         System.out.print("]");
     }
 
+    @Override public String getCode() {
+        String ret = "";
+        ret += "qword ";
+        ret += "[";
+        ret += base.getCode();
+        if (offSet != null) {
+            ret += "+";
+            ret += offSet.getCode();
+            ret += "*";
+            ret += scale.getCode();
+        }
+        if (disp != null) {
+            ret += "+";
+            ret += disp.getCode();
+        }
+        ret += "]";
+        return ret;
+    }
+
     public MemOprand copy() {
         if (this instanceof StackSlot) {
             return this;

@@ -18,4 +18,13 @@ public class GlobalMemOprand extends MemOprand {
         base.print();
         System.out.print("]");
     }
+
+    @Override public String getCode() {
+        String ret = "";
+        ret += "qword ";
+        ret += "[rel ";
+        ret += base.getCode();
+        ret += "]";
+        return ret;
+    }
 }

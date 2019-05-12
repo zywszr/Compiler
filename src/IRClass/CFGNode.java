@@ -95,8 +95,10 @@ public class CFGNode {
     }
 
     public void printCode() {
-        if (!hasFrom() && head == tail && hasNxt) return;
-        System.out.println(labelName + ":");
+        //if (!hasFrom() && head == tail && hasNxt) return;
+        if (hasFrom()) {
+            System.out.println(labelName + ":");
+        }
         for (Quad q = head ; q != null ; q = q.nxt) {
             if (hasNxt && q == tail) continue;
             q.printCode();

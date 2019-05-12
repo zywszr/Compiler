@@ -14,9 +14,9 @@ public class StackSlot extends MemOprand {
             System.out.print("[");
             base.print();
             if (offSet != null) {
-                System.out.println("+");
+                System.out.print("+");
                 offSet.print();
-                System.out.println("*");
+                System.out.print("*");
                 scale.print();
             }
             if (disp != null) {
@@ -25,5 +25,24 @@ public class StackSlot extends MemOprand {
             }
             System.out.print("]");
         }
+    }
+
+    @Override public String getCode() {
+        String ret = "";
+        ret += "qword ";
+        ret += "[";
+        ret += base.getCode();
+        if (offSet != null) {
+            ret += "+";
+            ret += offSet.getCode();
+            ret += "*";
+            ret += scale.getCode();
+        }
+        if (disp != null) {
+            ret += "+";
+            ret += disp.getCode();
+        }
+        ret += "]";
+        return ret;
     }
 }

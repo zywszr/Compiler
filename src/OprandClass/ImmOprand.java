@@ -13,4 +13,9 @@ public class ImmOprand extends Oprand {
     @Override public void print() {
         System.out.print(val);
     }
+
+    @Override public String getCode() {
+        String ret = Long.toString(val);
+        return ret;
+    }
 }

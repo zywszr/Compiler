@@ -52,6 +52,24 @@ public class AddrOprand extends Oprand {
         System.out.print("]");
     }
 
+    @Override public String getCode() {
+        String ret = "";
+        ret += "[";
+        ret += base.getCode();
+        if (offSet != null) {
+            ret += "+";
+            ret += offSet.getCode();
+            ret += "*";
+            ret += scale.getCode();
+        }
+        if (disp != null) {
+            ret += "+";
+            ret += disp.getCode();
+        }
+        ret += "]";
+        return ret;
+    }
+
     public HashSet <Oprand> getUsed() {
         HashSet <Oprand> ret = new HashSet<>();
         if (base != null && base instanceof RegOprand) ret.add(base);

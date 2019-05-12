@@ -17,4 +17,18 @@ public class ArrayAddrOprand extends AddrOprand {
         }
         System.out.print("+8]");
     }
+
+    @Override public String getCode() {
+        String ret = "";
+        ret += "[";
+        ret += base.getCode();
+        if (offSet != null) {
+            ret += "+";
+            ret += offSet.getCode();
+            ret += "*";
+            ret += scale.getCode();
+        }
+        ret += "+8]";
+        return ret;
+    }
 }

@@ -724,24 +724,28 @@ public class IRBuilder extends ASTVisitor {
                     newFalseLabel = falseLabels.peek();
                 }
                 String op = "";
+                boolean swap = false;
                 switch (node.id) {
                     case "==":
                         op = JE;
                         break;
                     case "!=":
-                        op = JNE;
+                        op = JE;
+                        swap = true;
                         break;
                     case "<":
                         op = JL;
                         break;
                     case "<=":
-                        op = JLE;
+                        op = JG;
+                        swap = true;
                         break;
                     case ">":
                         op = JG;
                         break;
                     case ">=":
-                        op = JGE;
+                        op = JL;
+                        swap = true;
                         break;
                 }
                 if (lson.type instanceof StringTypeDef) {
@@ -749,7 +753,11 @@ public class IRBuilder extends ASTVisitor {
                 } else {
                     addQuad(curlabel, new CompQuad(lson.reg, rson.reg));
                 }
-                addQuad(curlabel, new JumpQuad(op, newTrueLabel, newFalseLabel));
+                if (swap) {
+                    addQuad(curlabel, new JumpQuad(op, newFalseLabel, newTrueLabel));
+                } else {
+                    addQuad(curlabel, new JumpQuad(op, newTrueLabel, newFalseLabel));
+                }
             }
         } else if (node.type instanceof IntTypeDef){
             visitChild(node);

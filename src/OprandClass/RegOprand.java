@@ -19,4 +19,8 @@ public class RegOprand extends Oprand {
     @Override public void print() {
         System.out.print(regName);
     }
+
+    @Override public String getCode() {
+        return regName;
+    }
 }

@@ -7,4 +7,9 @@ public class StrOprand extends ImmOprand {
     @Override public void print() {
         System.out.print("S_" + Long.toString(val));
     }
+
+    @Override public String getCode() {
+        String ret = "S_" + Long.toString(val);
+        return ret;
+    }
 }

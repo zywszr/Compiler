@@ -286,6 +286,7 @@ public class IRCorrector {
                     if ((!q.op.equals("jmp")) && (((JumpQuad) q).getLabel2() != null)) {
                         q.append(new JumpQuad(JMP, ((JumpQuad) q).getLabel2()));
                         ((JumpQuad) q).setLabel2(null);
+
                     }
                 }
             }

@@ -8,6 +8,8 @@ public abstract class Oprand {
     }
 
     public abstract void print();
+
+    public abstract String getCode();
 }
 
 /*
