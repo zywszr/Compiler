@@ -776,7 +776,7 @@ public class IRBuilder extends ASTVisitor {
                     addQuad(curlabel, new ArthQuad("div", node.reg, lson.reg, rson.reg));
                     break;
                 case "%":
-                    if (rson.reg instanceof ImmOprand) {
+                    if (rson.reg instanceof ImmOprand && ((ImmOprand) rson.reg).getVal() > 10L) {
                         long bit = ((ImmOprand) rson.reg).getVal();
                         long mod = bit, num = 0L;
                         while ((bit & 1) == 0) {
@@ -784,9 +784,14 @@ public class IRBuilder extends ASTVisitor {
                             ++ num;
                         }
                         long inv = ((1L << 32) - 1) / bit + 1;
+                        //System.err.println("inv" + inv);
+                        //System.err.println("bit" + num);
+
                         Oprand reg = newTempVar(false);
                         addQuad(curlabel, new ArthQuad(MUL, reg, lson.reg, new ImmOprand(inv)));
                         addQuad(curlabel, new ArthQuad(SAR, reg, reg, new ImmOprand(32L + num)));
+                        //addQuad(curlabel, new ArthQuad(SAR, reg, reg, new ImmOprand(num)));
+                        //rson.reg.print();
                         addQuad(curlabel, new ArthQuad(MUL, reg, reg, rson.reg));
                         addQuad(curlabel, new ArthQuad(SUB, node.reg, lson.reg, reg));
                     } else {
