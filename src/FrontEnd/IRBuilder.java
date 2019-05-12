@@ -154,7 +154,7 @@ public class IRBuilder extends ASTVisitor {
     boolean checkInline(String funcName) {
         if (!funcNode.containsKey(funcName)) return false;
         if (inlineFunc.contains(funcName)) return false;
-        if (inLineDepth >= 1) return false;
+        if (inLineDepth >= 0) return false;
         return true;
     }
 
@@ -1085,11 +1085,11 @@ public class IRBuilder extends ASTVisitor {
                                                 new AddrOprand(child.reg,
                                                                 new ImmOprand(((OtherTypeDef)child.type).getBelongClass().getVarIdx(obj.reName)),
                                                                 new ImmOprand(8L))));
-            if (node.type instanceof StringTypeDef) {
+            /* if (node.type instanceof StringTypeDef) {
                 node.reg = tmp;
-            } else {
+            } else { */
                 node.reg = new MemOprand(tmp, null, null);
-            }
+            //}
             if (!node.isLeftVal()) {
                 checkBool(node);
             }
