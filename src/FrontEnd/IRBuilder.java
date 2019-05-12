@@ -154,7 +154,7 @@ public class IRBuilder extends ASTVisitor {
     boolean checkInline(String funcName) {
         if (!funcNode.containsKey(funcName)) return false;
         if (inlineFunc.contains(funcName)) return false;
-        if (inLineDepth >= 1) return false;
+        if (inLineDepth >= 2) return false;
         return true;
     }
 
@@ -776,7 +776,15 @@ public class IRBuilder extends ASTVisitor {
                     addQuad(curlabel, new ArthQuad("div", node.reg, lson.reg, rson.reg));
                     break;
                 case "%":
-                    addQuad(curlabel, new ArthQuad("mod", node.reg, lson.reg, rson.reg));
+                    if (rson.reg instanceof ImmOprand && ((ImmOprand) rson.reg).getVal() == 10000L) {
+                        Oprand reg = newTempVar(false);
+                        addQuad(curlabel, new ArthQuad(MUL, reg, lson.reg, new ImmOprand(6871948L)));
+                        addQuad(curlabel, new ArthQuad(SAR, reg, reg, new ImmOprand(36L)));
+                        addQuad(curlabel, new ArthQuad(MUL, reg, reg, rson.reg));
+                        addQuad(curlabel, new ArthQuad(SUB, node.reg, lson.reg, reg));
+                    } else {
+                        addQuad(curlabel, new ArthQuad("mod", node.reg, lson.reg, rson.reg));
+                    }
                     break;
                 case "<<":
                     addQuad(curlabel, new ArthQuad("sal", node.reg, lson.reg, rson.reg));
