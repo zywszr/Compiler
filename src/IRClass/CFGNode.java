@@ -8,11 +8,13 @@ public class CFGNode {
     public Quad head;
     public Quad tail;
     ArrayList <CFGNode> froms;
-    ArrayList <CFGNode> tos;
+    public ArrayList <CFGNode> tos;
     ArrayList <CFGNode> commonSuc;
     ArrayList <CFGNode> branchSuc;
     String labelName;
     int idx;
+
+    public boolean hasNxt;
 
     public CFGNode(int labelIdx) {
         // quads = new LinkedList<>();
@@ -21,6 +23,7 @@ public class CFGNode {
         labelName = "label_" + Integer.toString(labelIdx);
         head = null;
         tail = null;
+        hasNxt = false;
     }
 
     public void prepend(Quad q) {
@@ -92,8 +95,10 @@ public class CFGNode {
     }
 
     public void printCode() {
+        if (!hasFrom() && head == tail && hasNxt) return;
         System.out.println(labelName + ":");
         for (Quad q = head ; q != null ; q = q.nxt) {
+            if (hasNxt && q == tail) continue;
             q.printCode();
         }
     }

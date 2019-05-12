@@ -16,6 +16,7 @@ public class FuncFrame {
     CFGNode end;
     String name;
     HashMap <String, Long> varIdx;
+    HashSet <String> outCFG;
     Long varSize;
     public HashSet <Oprand> globalVarUsed;
     public HashSet <Oprand> globalVarDefined;
@@ -108,11 +109,41 @@ public class FuncFrame {
         System.out.println();
     }
 
+    void printBlock(CFGNode x) {
+        if (x == null) return;
+        if (outCFG.contains(x.labelName)) return;
+        if (x.tos.size() > 0) {
+            CFGNode nxt = ((JumpQuad) x.tail).getLabel1();
+            //System.err.println("Nxt Label :" + nxt.labelName);
+            if (!outCFG.contains(nxt.labelName)) {
+                x.hasNxt = true;
+                x.printCode();
+                outCFG.add(x.labelName);
+                //System.err.println(x.labelName);
+                nxt.froms.remove(x);
+                printBlock(nxt);
+            } else {
+                x.printCode();
+                outCFG.add(x.labelName);
+            }
+            for (CFGNode to : x.tos) {
+                if (!outCFG.contains(to.labelName)) {
+                    printBlock(to);
+                }
+            }
+        } else {
+            x.printCode();
+            outCFG.add(x.labelName);
+        }
+    }
+
     public void printCode() {
         System.out.println(name + ":");
-        for (int i = 0 ; i < cfgList.size() ; ++ i) {
+        outCFG = new HashSet<>();
+        printBlock(start);
+        /* for (int i = 0 ; i < cfgList.size() ; ++ i) {
             cfgList.get(i).printCode();
-        }
+        }*/
         System.out.println();
     }
 

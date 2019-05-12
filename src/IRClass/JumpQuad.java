@@ -37,6 +37,10 @@ public class JumpQuad extends Quad {
         return label2;
     }
 
+    public CFGNode getLabel1() {
+        return label1;
+    }
+
     public void setLabel2(CFGNode _label2) {
         label2 = _label2;
     }

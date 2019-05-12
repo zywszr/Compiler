@@ -4,6 +4,7 @@ import javafx.util.Pair;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class LineIR {
     ArrayList <FuncFrame> funcs;
@@ -13,7 +14,7 @@ public class LineIR {
     public HashMap <String, FuncFrame> stringToFunc;
     ArrayList <String> globalVar;
     Long strLiterSize;
-    ArrayList <Pair<String, String>> roData;
+    HashMap <String, Pair<String, Long> > roData;
 
     Long globalVarSize;
 
@@ -28,7 +29,7 @@ public class LineIR {
         strLiterSize = 0L;
         globalVarSize = 0L;
         global = new ArrayList<>();
-        roData = new ArrayList<>();
+        roData = new HashMap<>();
     }
 
     public void pushClassSize(String className, Long Size) {
@@ -56,10 +57,10 @@ public class LineIR {
             str += tmp + "H, ";
         }
         str += "00H";
-        roData.add(new Pair<>(name, str));
+        roData.put(name, new Pair<>(str, (long) len));
     }
 
-    public ArrayList <Pair <String, String> > getRoData() {
+    public HashMap <String, Pair <String, Long> > getRoData() {
         return roData;
     }
 

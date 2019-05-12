@@ -217,14 +217,14 @@ public class IRBuilder extends ASTVisitor {
                 }
                 // curfunc.pushVar(node.reName);
                 // string
-                if (node.type instanceof StringTypeDef) {
+                /* if (node.type instanceof StringTypeDef) {
                     genNewFunc(new ImmOprand(256L), node.reg);
                     if (node.childs.size() > 0) {
                         visitChild(node);
                         genStrcpyFunc(node.reg, node.childs.get(0).reg);
                     }
                     break;
-                }
+                }*/
                 // bool int class array
                 if (node.childs.size() > 0) {
                     Node child = node.childs.get(0);
@@ -609,11 +609,11 @@ public class IRBuilder extends ASTVisitor {
         }
     }
 
-    void genStrcatFunc(Oprand l, Oprand r) throws Exception {
+    void genStrcatFunc(Oprand l, Oprand r, Oprand rdest) throws Exception {
         ArrayList <Oprand> params = new ArrayList<>();
         params.add(l);
         params.add(r);
-        genFuncQuad("string_strcat", params, false, null);
+        genFuncQuad("string_strcat", params, true, rdest);
     }
 
     @Override public void visit(BinExprNode node) throws Exception {
@@ -691,7 +691,7 @@ public class IRBuilder extends ASTVisitor {
                     params.add(lson.reg);
                     params.add(rson.reg);
                     tmp = newTempVar(false);
-                    genFuncQuad("strcmp", params, true, tmp);
+                    genFuncQuad("string_compare", params, true, tmp);
 
                 } else if (lson.type instanceof BoolTypeDef) {
                     CFGNode rtlabel = createNewLabel();
@@ -787,21 +787,23 @@ public class IRBuilder extends ASTVisitor {
                     break;
             }
         } else if (node.type instanceof StringTypeDef) {
-            if (node.reg == null || node.isStrTop) {
+            /* if (node.reg == null || node.isStrTop) {
                 node.isStrTop = true;
                 node.reg = newTempVar(true);
                 genNewFunc(new ImmOprand(256L), node.reg);
-            }
+            }*/
 
-            if (lson.id.equals("+") && (!lson.isUnique())) {
+            /*if (lson.id.equals("+") && (!lson.isUnique())) {
                 lson.reg = node.reg;
-            }
+            }*/
+            node.reg = newTempVar(true);
             visit(lson);
-            if (!(lson.id.equals("+") && (!lson.isUnique()))) genStrcatFunc(node.reg, lson.reg);
+            //if (!(lson.id.equals("+") && (!lson.isUnique()))) genStrcatFunc(node.reg, lson.reg);
 
-            if (rson.id.equals("+") && (!rson.isUnique())) rson.reg = node.reg;
+            //if (rson.id.equals("+") && (!rson.isUnique())) rson.reg = node.reg;
             visit(rson);
-            if (!(rson.id.equals("+") && (!rson.isUnique()))) genStrcatFunc(node.reg, rson.reg);
+            genStrcatFunc(lson.reg, rson.reg, node.reg);
+            //if (!(rson.id.equals("+") && (!rson.isUnique()))) genStrcatFunc(node.reg, rson.reg);
 
         } else if (node.id.equals("=")){
             lson.setLeftVal();
@@ -816,11 +818,11 @@ public class IRBuilder extends ASTVisitor {
             } else {
                 visit(rson);
             }
-            if (lson.type instanceof StringTypeDef) {
+        /*    if (lson.type instanceof StringTypeDef) {
                 genStrcpyFunc(lson.reg, rson.reg);
             } else {
-                addQuad(curlabel, new ArthQuad(MOV, lson.reg, rson.reg));
-            }
+        */        addQuad(curlabel, new ArthQuad(MOV, lson.reg, rson.reg));
+         //   }
             node.reg = null;
         }
     }
@@ -912,16 +914,16 @@ public class IRBuilder extends ASTVisitor {
     @Override public void visit(NewVarNode node) throws Exception {
         if (node.childs.isEmpty()) {
             node.reg = newTempVar(true);
-            if (node.type instanceof StringTypeDef) {
+            /* if (node.type instanceof StringTypeDef) {
                 genNewFunc(new ImmOprand(256L), node.reg);
-            } else {
+            } else { */
                 genNewFunc(new ImmOprand(((OtherTypeDef)node.type).getClassSize() * 8), node.reg);
                 if (funcNode.containsKey(((OtherTypeDef) node.type).getTypeId() + "_" + ((OtherTypeDef) node.type).getTypeId())) {
                     ArrayList<Oprand> params = new ArrayList<>();
                     params.add(node.reg);
                     genFuncQuad(((OtherTypeDef) node.type).getTypeId() + "_" + ((OtherTypeDef) node.type).getTypeId(), params, false, null);
                 }
-            }
+            // }
             return;
         }
         Node expr = node.childs.get(0), eleType = node.childs.get(1);
@@ -938,7 +940,7 @@ public class IRBuilder extends ASTVisitor {
         }
         addQuad(curlabel, new ArthQuad(MOV, new MemOprand(node.reg, null, null), expr.reg));
 
-        if (eleType.childs.isEmpty() && (!(eleType.type instanceof StringTypeDef))) return;
+        if (eleType.childs.isEmpty()) return;
         if (!eleType.childs.isEmpty() && eleType.childs.get(0) instanceof EmptyExprNode) return;
 
         Oprand i = newTempVar(false);

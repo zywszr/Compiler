@@ -68,7 +68,7 @@ public class Scope<T> {
         // System.out.println(Name);
         varIdx.put(Name, classSize);
         if (type instanceof StringTypeDef) {
-            classSize += 32;
+            classSize += 1;
         } else {
             classSize += 1;
         }

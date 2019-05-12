@@ -6,9 +6,7 @@ import OprandClass.Oprand;
 import OprandClass.StackSlot;
 import javafx.util.Pair;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.LinkedList;
+import java.util.*;
 
 import static BackEnd.RegisterSet.*;
 import static IRClass.Inst.*;
@@ -102,7 +100,7 @@ public class CodeGen {
 
     void initPrint() {
         globals.addAll(lineIR.getGlobal());
-        globals.add("string_substring");
+        /*globals.add("string_substring");
         globals.add("string_parseInt");
         globals.add("string_ord");
         globals.add("string_strcpy");
@@ -113,7 +111,36 @@ public class CodeGen {
         globals.add("getString");
         globals.add("getInt");
         globals.add("toString");
+        */
 
+
+        globals.add("print");
+        globals.add("println");
+        globals.add("getString");
+        globals.add("getInt");
+        globals.add("toString");
+        globals.add("string_length");
+        globals.add("string_substring");
+        globals.add("string_parseInt");
+        globals.add("string_ord");
+        globals.add("string_strcat");
+        globals.add("string_Compare");
+    /*    globals.add("__hasValue");
+        globals.add("__getValue");
+        globals.add("__setValue");
+        globals.add("__value");
+        globals.add("__has");
+        globals.add("__real_addr");
+    */
+
+        externs.add("strcmp");
+        externs.add("__sprintf_chk");
+        externs.add("memcpy");
+        externs.add("malloc");
+        externs.add("__isoc99_scanf");
+        externs.add("puts");
+        externs.add("__printf_chk");
+        /*
         externs.add("strcmp");
         externs.add("__sprintf_chk");
         externs.add("_IO_getc");
@@ -126,6 +153,7 @@ public class CodeGen {
         externs.add("sscanf");
         externs.add("memcpy");
         externs.add("malloc");
+        */
     }
 
     public void print() {
@@ -141,8 +169,9 @@ public class CodeGen {
         }
 
         codes.add("");
-        codes.add("SECTION .text");
+
         codes.add(PreCode.text);
+        codes.add("\n" + "SECTION .text" + "\n");
 
         for (int i = 0 ; i < codes.size() ; ++ i) {
             System.out.println(codes.get(i));
@@ -162,12 +191,15 @@ public class CodeGen {
         }
 
         codes.add("\n" + "SECTION .rodata");
-        for (Pair <String, String> str : lineIR.getRoData()) {
-            codes.add(str.getKey() + ": ");
-            codes.add(String.format("%-8s db %s", " ", str.getValue()));
+        for (Map.Entry p : lineIR.getRoData().entrySet()) {
+            codes.add(p.getKey() + ": ");
+            codes.add(String.format("%-8s dq %s", " ", ((Pair <String, Long>) p.getValue()).getValue()));
+            codes.add(String.format("%-8s db %s", " ", ((Pair <String, Long>) p.getValue()).getKey()));
         }
 
-        codes.add(PreCode.roData);
+
+
+        //codes.add(PreCode.roData);
         codes.add("");
 
         for (int i = 0 ; i < codes.size() ; ++ i) {
