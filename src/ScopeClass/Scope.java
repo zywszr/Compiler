@@ -1,7 +1,7 @@
 package ScopeClass;
 
 import TypeDefition.*;
-import javafx.util.Pair;
+import TypeDefition.Pair;
 import java.util.*;
 
 public class Scope<T> {

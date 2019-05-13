@@ -4,8 +4,6 @@ package FrontEnd;
 import TypeDefition.*;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-import javafx.util.*;
-
 public class ASTBuilder extends MxStarBaseVisitor <Node> {
     @Override public ProgramNode visitProgram(MxStarParser.ProgramContext ctx) {
         ProgramNode ret = new ProgramNode();

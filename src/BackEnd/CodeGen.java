@@ -4,7 +4,7 @@ import IRClass.*;
 import OprandClass.ImmOprand;
 import OprandClass.Oprand;
 import OprandClass.StackSlot;
-import javafx.util.Pair;
+import TypeDefition.Pair;
 
 import java.util.*;
 

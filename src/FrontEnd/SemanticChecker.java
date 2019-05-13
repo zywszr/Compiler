@@ -4,7 +4,7 @@ import TypeDefition.*;
 import ScopeClass.*;
 import OprandClass.*;
 
-import javafx.util.Pair;
+import TypeDefition.Pair;
 
 import java.util.HashMap;
 

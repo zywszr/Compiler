@@ -1,7 +1,7 @@
 package ScopeClass;
 
 import java.util.HashMap;
-import javafx.util.Pair;
+import TypeDefition.Pair;
 
 public class SymbolTable<T> {
     HashMap<String, T> table;

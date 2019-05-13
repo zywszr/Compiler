@@ -1,11 +1,11 @@
 package BackEnd;
 
-import IRClass.CFGNode;
-import IRClass.FuncFrame;
-import IRClass.LineIR;
-import IRClass.Quad;
+import IRClass.*;
 import OprandClass.Oprand;
 import OprandClass.RegOprand;
+
+import java.util.ArrayList;
+import java.util.HashSet;
 
 import static IRClass.Inst.*;
 
@@ -16,8 +16,41 @@ public class DeadCode {
         lineIR = _lineIR;
     }
 
-    public void work_before_allocate() {
+    boolean checkRemove(Quad q) {
+        if (q instanceof ArthQuad) return true;
+        return false;
+    }
 
+    public void work_before_allocate() {
+        ActAnalysiser analysiser = new ActAnalysiser();
+        for (FuncFrame func : lineIR.getFuncs()) {
+            ArrayList <HashSet <Oprand> > liveOut = analysiser.getLiveOut(func);
+            ArrayList <CFGNode> blocks = func.getCfgList();
+            for (int i = 0 ; i < blocks.size() ; ++ i) {
+                HashSet <Oprand> liveNow = new HashSet<>(liveOut.get(i));
+                CFGNode block = blocks.get(i);
+                boolean isDead = true;
+                for (Quad q = block.tail ; q != null ; q = q.pre) {
+                    HashSet <Oprand> defined = q.getDefined();
+                    if (defined.isEmpty()) {
+                        isDead = false;
+                    }
+                    for (Oprand reg : defined) {
+                        if (liveNow.contains(reg)) {
+                            isDead = false;
+                            break;
+                        }
+                    }
+                    if (isDead && checkRemove(q)) {
+                        q.remove();
+                    } else {
+                        HashSet <Oprand> used = q.getUsed();
+                        liveNow.removeAll(defined);
+                        liveNow.addAll(used);
+                    }
+                }
+            }
+        }
     }
 
     public void work_after_allocate() {
