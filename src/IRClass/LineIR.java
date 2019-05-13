@@ -1,6 +1,6 @@
 package IRClass;
 
-import javafx.util.Pair;
+import TypeDefition.Pair;
 
 import java.util.ArrayList;
 import java.util.HashMap;
