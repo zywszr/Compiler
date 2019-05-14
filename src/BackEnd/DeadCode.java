@@ -42,6 +42,7 @@ public class DeadCode {
                         }
                     }
                     if (isDead && checkRemove(q)) {
+                        System.err.print("yes");
                         q.remove();
                     } else {
                         HashSet <Oprand> used = q.getUsed();
@@ -72,6 +73,17 @@ public class DeadCode {
                             String rt1 = q.getRt().getCode(), r11 = q.getR1().getCode();
                             String rt2 = q.pre.getRt().getCode(), r12 = q.pre.getR1().getCode();
                             if (rt1.equals(r12) && r11.equals(rt2)) {
+                                q.remove();
+                            }
+                        }
+                    }
+                }
+                for (Quad q = block.head ; q != null ; q = q.nxt) {
+                    if (q.op.equals(MOV)) {
+                        if (q.nxt != null && q.nxt.op.equals(MOV)) {
+                            String rt1 = q.getRt().getCode();
+                            String rt2 = q.nxt.getRt().getCode();
+                            if (rt1.equals(rt2)) {
                                 q.remove();
                             }
                         }

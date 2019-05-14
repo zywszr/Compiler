@@ -292,7 +292,7 @@ public class IRBuilder extends ASTVisitor {
         curVarKind = 2;
         int K;
         if (!node.inClass.equals("")) {
-            addQuad(curlabel, new ArthQuad(MOV, getReg(node.inClass + "_this", true, inLineDepth), args.get(0)));
+            // addQuad(curlabel, new ArthQuad(MOV, getReg(node.inClass + "_this", true, inLineDepth), args.get(0)));
             curfunc.parameters.add(getReg(node.inClass + "_this", true, inLineDepth));
             K = 5;
         } else {
@@ -307,11 +307,11 @@ public class IRBuilder extends ASTVisitor {
                 child.reg = getReg(child.reName, false, inLineDepth);
                 curfunc.parameters.add(child.reg);
                 if (i < K) {
-                    addQuad(curlabel, new ArthQuad(MOV, child.reg, args.get(i + (K == 5 ? 1 : 0))));
+                //    addQuad(curlabel, new ArthQuad(MOV, child.reg, args.get(i + (K == 5 ? 1 : 0))));
                 } else {
                     MemOprand stack = new StackSlot();
                     child.reg.setMemPos(stack);
-                    addQuad(curlabel, new ArthQuad(MOV, child.reg, stack));
+                //    addQuad(curlabel, new ArthQuad(MOV, child.reg, stack));
                 }
             } else {
                 visit(child);
@@ -349,7 +349,7 @@ public class IRBuilder extends ASTVisitor {
         retLabels.push(curRetLabel);
 
         curVarKind = 2;
-        addQuad(curlabel, new ArthQuad(MOV, getReg(node.id + "_this", true, inLineDepth), args.get(0)));
+        // addQuad(curlabel, new ArthQuad(MOV, getReg(node.id + "_this", true, inLineDepth), args.get(0)));
         curfunc.parameters.add(getReg(node.id + "_this", true, inLineDepth));
 
         globalVarDefined.clear();
@@ -361,11 +361,11 @@ public class IRBuilder extends ASTVisitor {
                 child.reg = getReg(child.reName, false, inLineDepth);
                 curfunc.parameters.add(child.reg);
                 if (i < 5) {
-                    addQuad(curlabel, new ArthQuad(MOV, child.reg, args.get(i + 1)));
+                    // addQuad(curlabel, new ArthQuad(MOV, child.reg, args.get(i + 1)));
                 } else {
                     MemOprand stack = new StackSlot();
                     child.reg.setMemPos(stack);
-                    addQuad(curlabel, new ArthQuad(MOV, child.reg, stack));
+                    // addQuad(curlabel, new ArthQuad(MOV, child.reg, stack));
                 }
             } else {
                 visit(child);
@@ -1044,13 +1044,13 @@ public class IRBuilder extends ASTVisitor {
 
             node.reg = new MemOprand(base, offset, new ImmOprand(8L));
         } else if (checkGlobalVar(node.reName)) {
-            //node.reg = getReg(node.reName, false, -1);
-            node.reg = new GlobalMemOprand(getReg(node.reName, false, -1));
+            node.reg = getReg(node.reName, false, -1);
+            //node.reg = new GlobalMemOprand(getReg(node.reName, false, -1));
             //if (node.isLeftVal() && (!(node.type instanceof StringTypeDef))) {
-            // globalVarDefined.add(node.reg);
+            globalVarDefined.add(node.reg);
             //}
             //if (node.isWillUse()) {
-            // globalVarUsed.add(node.reg);
+            globalVarUsed.add(node.reg);
             //}
 
         } else {
