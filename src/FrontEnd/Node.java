@@ -23,6 +23,87 @@ public abstract class Node {
     boolean unique;
     boolean willUse;
     boolean leftVal;
+
+    public void accept(ASTVisitor visitor) throws Exception {
+        visitor.visit(this);
+    }
+
+    public Node copy() {
+        Node ret = null;
+        if (this instanceof ProgramNode) ret = new ProgramNode();
+        else
+        if (this instanceof VarDefNode) ret = new VarDefNode();
+        else
+        if (this instanceof ClassDefNode) ret = new ClassDefNode();
+        else
+        if (this instanceof ConstructFuncNode) ret = new ConstructFuncNode();
+        else
+        if (this instanceof FunctionDefNode) ret = new FunctionDefNode();
+        else
+        if (this instanceof BlockStateNode) ret = new BlockStateNode();
+        else
+        if (this instanceof ExprStateNode) ret = new ExprStateNode();
+        else
+        if (this instanceof CondStateNode) ret = new CondStateNode();
+        else
+        if (this instanceof ForStateNode) ret = new ForStateNode();
+        else
+        if (this instanceof WhileStateNode) ret = new WhileStateNode();
+        else
+        if (this instanceof ReturnStateNode) ret = new ReturnStateNode();
+        else
+        if (this instanceof BreakStateNode) ret = new BreakStateNode();
+        else
+        if (this instanceof ContinStateNode) ret = new ContinStateNode();
+        else
+        if (this instanceof NullStateNode) ret = new NullStateNode();
+        else
+        if (this instanceof VarDefStateNode) ret = new VarDefStateNode();
+        else
+        if (this instanceof EmptyExprNode) ret = new EmptyExprNode();
+        else
+        if (this instanceof BinExprNode) ret = new BinExprNode();
+        else
+        if (this instanceof LUnaryExprNode) ret = new LUnaryExprNode();
+        else
+        if (this instanceof RUnaryExprNode) ret = new RUnaryExprNode();
+        else
+        if (this instanceof NewVarNode) ret = new NewVarNode();
+        else
+        if (this instanceof FunEleExprNode) ret = new FunEleExprNode();
+        else
+        if (this instanceof VarEleExprNode) ret = new VarEleExprNode();
+        else
+        if (this instanceof PriArrExprNode) ret = new PriArrExprNode();
+        else
+        if (this instanceof PriPntExprNode) ret = new PriPntExprNode();
+        else
+        if (this instanceof IntLitNode) ret = new IntLitNode();
+        else
+        if (this instanceof LogLitNode) ret = new LogLitNode();
+        else
+        if (this instanceof NullLitNode) ret = new NullLitNode();
+        else
+        if (this instanceof StrLitNode) ret = new StrLitNode();
+        ret.id = id;
+        ret.reName = reName;
+        ret.type = type;
+        ret.inClass = inClass;
+        ret.strLiter = strLiter;
+        ret.reg = reg;
+        ret.pos = pos;
+        for (int i = 0 ; i < childs.size() ; ++ i) {
+            ret.childs.add(childs.get(i).copy());
+        }
+        ret.belong = belong;
+        ret.unique = unique;
+        ret.willUse = willUse;
+        ret.leftVal = leftVal;
+        ret.willJump = willJump;
+        ret.isStrTop = isStrTop;
+        return ret;
+    }
+
     Node() {
         id = "";
         reName = "";
@@ -39,9 +120,7 @@ public abstract class Node {
         willJump = true;
         isStrTop = false;
     }
-    public void accept(ASTVisitor visitor) throws Exception {
-        visitor.visit(this);
-    }
+
     public void setUnique() {
         unique = true;
     }

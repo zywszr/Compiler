@@ -153,8 +153,8 @@ public class IRBuilder extends ASTVisitor {
 
     boolean checkInline(String funcName) {
         if (!funcNode.containsKey(funcName)) return false;
-        if (inlineFunc.contains(funcName) || inlineFunc.contains("___init")) return false;
-        if (inLineDepth >= 1) return false;
+        if (/*inlineFunc.contains(funcName) ||*/ inlineFunc.contains("___init")) return false;
+        if (inLineDepth >= 3) return false;
         return true;
     }
 
@@ -175,7 +175,7 @@ public class IRBuilder extends ASTVisitor {
 
             if (isReturn) retRegs.push(rdest);
             inlineFunc.add(funcName);
-            visit(node);
+            visit(node.copy());
             inlineFunc.remove(funcName);
             if (isReturn) retRegs.pop();
             -- inLineDepth;
@@ -1047,13 +1047,14 @@ public class IRBuilder extends ASTVisitor {
             if (curfunc.getName().equals("___init")) {
                 node.reg = new GlobalMemOprand(getReg(node.reName, false, -1));
             } else {
-                node.reg = getReg(node.reName, false, -1);
+                node.reg = new GlobalMemOprand(getReg(node.reName, false, -1));
+                // node.reg = getReg(node.reName, false, -1);
                 //
                 //if (node.isLeftVal() && (!(node.type instanceof StringTypeDef))) {
-                globalVarDefined.add(node.reg);
+                // globalVarDefined.add(node.reg);
                 //}
                 //if (node.isWillUse()) {
-                globalVarUsed.add(node.reg);
+                // globalVarUsed.add(node.reg);
                 //}
             }
 

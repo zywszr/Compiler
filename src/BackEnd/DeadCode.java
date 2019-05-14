@@ -99,7 +99,6 @@ public class DeadCode {
                 }
             }
         }
-
+        work_before_allocate();
     }
-
 }
