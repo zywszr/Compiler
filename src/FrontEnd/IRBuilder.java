@@ -155,7 +155,7 @@ public class IRBuilder extends ASTVisitor {
         if (!funcNode.containsKey(funcName)) return false;
         if (funcNode.get(funcName).stateNum > 30) return false;
         if (/*inlineFunc.contains(funcName) ||*/ inlineFunc.contains("___init")) return false;
-        if (inLineDepth >= 4) return false;
+        if (inLineDepth >= 3) return false;
         return true;
     }
 
