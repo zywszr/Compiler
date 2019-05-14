@@ -153,6 +153,7 @@ public class IRBuilder extends ASTVisitor {
 
     boolean checkInline(String funcName) {
         if (!funcNode.containsKey(funcName)) return false;
+        if (funcNode.get(funcName).stateNum > 30) return false;
         if (/*inlineFunc.contains(funcName) ||*/ inlineFunc.contains("___init")) return false;
         if (inLineDepth >= 3) return false;
         return true;
@@ -160,8 +161,8 @@ public class IRBuilder extends ASTVisitor {
 
     void genFuncQuad(String funcName, ArrayList<Oprand> params, boolean isReturn, Oprand rdest) throws Exception {
         if (checkInline(funcName)) {
-            ++ inLineDepth;
             Node node = funcNode.get(funcName);
+            ++ inLineDepth;
             boolean isInClass = false;
             if (!node.inClass.equals("")) {
                 addQuad(curlabel, new ArthQuad(MOV, getReg(node.inClass + "_this", true, inLineDepth), params.get(0)));

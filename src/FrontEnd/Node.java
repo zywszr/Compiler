@@ -18,6 +18,7 @@ public abstract class Node {
     PositionDef pos;
     List<Node> childs;
     Scope<TypeDef> belong;
+    int stateNum;
     public boolean isStrTop;
     boolean willJump;
     boolean unique;
@@ -101,6 +102,7 @@ public abstract class Node {
         ret.leftVal = leftVal;
         ret.willJump = willJump;
         ret.isStrTop = isStrTop;
+        ret.stateNum = stateNum;
         return ret;
     }
 
@@ -119,6 +121,7 @@ public abstract class Node {
         leftVal = false;
         willJump = true;
         isStrTop = false;
+        stateNum = 0;
     }
 
     public void setUnique() {

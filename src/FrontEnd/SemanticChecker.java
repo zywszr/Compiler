@@ -15,6 +15,7 @@ public class SemanticChecker extends ASTVisitor {
     private String curClass;
     private TypeDef funcRetType;
     public HashMap <String, Node> funcNode;
+    private int stateNum;
 
     public SemanticChecker(GlobalScope<TypeDef> root, HashMap <String, Node> _funcNode) {
         rootScope = root;
@@ -23,7 +24,7 @@ public class SemanticChecker extends ASTVisitor {
         curClass = "";
         funcRetType = null;
         funcNode = _funcNode;
-
+        stateNum = 0;
     }
 
     boolean checkTypeExist(TypeDef type) {
@@ -75,6 +76,7 @@ public class SemanticChecker extends ASTVisitor {
             throw new VoidDefVarError(curNode.pos);
         }
         if (!checkTypeExist(curNode.type)) throw new NoDefinedTypeError(curNode.pos);
+        ++ stateNum;
         visitChild(curNode);
         if (curNode.childs.size() > 0) {
             ExprNode expr = (ExprNode)curNode.childs.get(0);
@@ -106,8 +108,11 @@ public class SemanticChecker extends ASTVisitor {
     @Override void visit(FunctionDefNode curNode) throws Exception {
         if(!checkTypeExist(curNode.type)) throw new NoDefinedTypeError(curNode.pos);
         funcRetType = curNode.type;
+        stateNum = 0;
         visitChild(curNode);
+        curNode.stateNum = stateNum;
         funcRetType = null;
+        // System.err.print(curNode.id + " stateNum: " + stateNum);
         if (curNode.belong instanceof ClassScope) {
             curNode.inClass = curClass;
             funcNode.put(curNode.inClass + "_" + curNode.id, curNode);
@@ -119,19 +124,23 @@ public class SemanticChecker extends ASTVisitor {
     @Override void visit(ConstructFuncNode curNode) throws Exception {
         if (!curClass.equals(curNode.id)) throw new WrongNameConsFunc(curNode.pos);
         funcRetType = curNode.type;
+        stateNum = 0;
         visitChild(curNode);
+        curNode.stateNum = stateNum;
         funcRetType = null;
         curNode.inClass = curClass;
         funcNode.put(curClass + "_" + curClass, curNode);
     }
 
     @Override void visit(CondStateNode curNode) throws Exception {
+        ++ stateNum;
         visitChild(curNode);
         ExprNode expr = (ExprNode)curNode.childs.get(0);
         if (!(expr.type instanceof BoolTypeDef)) throw new NotConditionExpr(expr.pos);
     }
 
     @Override void visit(ForStateNode curNode) throws Exception {
+        ++ stateNum;
         ++ loopNum;
         visitChild(curNode);
         -- loopNum;
@@ -142,6 +151,7 @@ public class SemanticChecker extends ASTVisitor {
     }
 
     @Override void visit(WhileStateNode curNode) throws Exception {
+        ++ stateNum;
         ++ loopNum;
         visitChild(curNode);
         -- loopNum;
@@ -150,14 +160,17 @@ public class SemanticChecker extends ASTVisitor {
     }
 
     @Override void visit(BreakStateNode curNode) throws Exception {
+        ++ stateNum;
         if (loopNum == 0) throw new BrkOutIterStat(curNode.pos);
     }
 
     @Override void visit(ContinStateNode curNode) throws Exception {
+        ++ stateNum;
         if (loopNum == 0) throw new CntOutIterStat(curNode.pos);
     }
 
     @Override void visit(ReturnStateNode curNode) throws Exception {
+        ++ stateNum;
         if (funcRetType instanceof VoidTypeDef) {
             if (!curNode.childs.isEmpty()) throw new DisMatchedFuncReturn(curNode.pos);
         } else {
@@ -174,7 +187,13 @@ public class SemanticChecker extends ASTVisitor {
         visitChild(curNode);
     }
 
+    @Override public void visit(ExprStateNode node) throws Exception {
+        ++ stateNum;
+        visitChild(node);
+    }
+
     @Override void visit(BinExprNode curNode) throws Exception {
+        ++ stateNum;
         visitChild(curNode);
         ExprNode left = (ExprNode)curNode.childs.get(0);
         ExprNode right = (ExprNode)curNode.childs.get(1);
@@ -195,6 +214,7 @@ public class SemanticChecker extends ASTVisitor {
         } else throw new NoDefinedOpError(curNode.pos);
 
         if (left.isUnique() && right.isUnique()) {
+            -- stateNum;
             curNode.setUnique();
             switch (curNode.id) {
                 case "+":
@@ -345,6 +365,7 @@ public class SemanticChecker extends ASTVisitor {
     }
 
     @Override void visit(LUnaryExprNode curNode) throws Exception {
+        ++ stateNum;
         visitChild(curNode);
         ExprNode expr = (ExprNode)curNode.childs.get(0);
         OpType op = OpType.getOpType(curNode.id);
@@ -352,6 +373,7 @@ public class SemanticChecker extends ASTVisitor {
         if (!op.containsType(expr.type)) throw new NoCastExpr(curNode.pos);
         curNode.type = expr.type;
         if (expr.isUnique()) {
+            -- stateNum;
             curNode.setUnique();
             switch (curNode.id) {
                 case "+":
@@ -372,6 +394,7 @@ public class SemanticChecker extends ASTVisitor {
     }
 
     @Override void visit(RUnaryExprNode curNode) throws Exception {
+        ++ stateNum;
         visitChild(curNode);
         ExprNode expr = (ExprNode)curNode.childs.get(0);
         OpType op = OpType.getOpType(curNode.id);
@@ -382,6 +405,7 @@ public class SemanticChecker extends ASTVisitor {
     }
 
     @Override void visit(NewVarNode curNode) throws Exception {
+        ++ stateNum;
         if (curNode.childs.isEmpty()) {
             if (!checkTypeExist(curNode.type)) throw new NoDefinedOpError(curNode.pos);
             return;
@@ -403,6 +427,7 @@ public class SemanticChecker extends ASTVisitor {
     }
 
     @Override void visit(FunEleExprNode curNode) throws Exception {
+        ++ stateNum;
         visitChild(curNode);
         Pair<Scope<TypeDef>, TypeDef> ret = curNode.belong.matchVarName(curNode.id);
         if (ret == null) throw new NoDefinedTypeError(curNode.pos);
@@ -415,6 +440,7 @@ public class SemanticChecker extends ASTVisitor {
     }
 
     @Override void visit(PriArrExprNode curNode) throws Exception {
+        ++ stateNum;
         visitChild(curNode);
         Node pointer = curNode.childs.get(0);
         if (!(pointer.type instanceof ArrayTypeDef)) throw new NullPointer(curNode.pos);
@@ -422,6 +448,7 @@ public class SemanticChecker extends ASTVisitor {
     }
 
     @Override void visit(PriPntExprNode curNode) throws Exception {
+        ++ stateNum;
         Node child = curNode.childs.get(0);
         Node object = curNode.childs.get(1);
         visit(child);
