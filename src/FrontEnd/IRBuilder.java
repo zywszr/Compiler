@@ -153,7 +153,7 @@ public class IRBuilder extends ASTVisitor {
 
     boolean checkInline(String funcName) {
         if (!funcNode.containsKey(funcName)) return false;
-        if (inlineFunc.contains(funcName)) return false;
+        if (inlineFunc.contains(funcName) || inlineFunc.contains("___init")) return false;
         if (inLineDepth >= 1) return false;
         return true;
     }
@@ -1044,14 +1044,18 @@ public class IRBuilder extends ASTVisitor {
 
             node.reg = new MemOprand(base, offset, new ImmOprand(8L));
         } else if (checkGlobalVar(node.reName)) {
-            node.reg = getReg(node.reName, false, -1);
-            //node.reg = new GlobalMemOprand(getReg(node.reName, false, -1));
-            //if (node.isLeftVal() && (!(node.type instanceof StringTypeDef))) {
-            globalVarDefined.add(node.reg);
-            //}
-            //if (node.isWillUse()) {
-            globalVarUsed.add(node.reg);
-            //}
+            if (curfunc.getName().equals("___init")) {
+                node.reg = new GlobalMemOprand(getReg(node.reName, false, -1));
+            } else {
+                node.reg = getReg(node.reName, false, -1);
+                //
+                //if (node.isLeftVal() && (!(node.type instanceof StringTypeDef))) {
+                globalVarDefined.add(node.reg);
+                //}
+                //if (node.isWillUse()) {
+                globalVarUsed.add(node.reg);
+                //}
+            }
 
         } else {
             node.reg = getReg(node.reName, false, inLineDepth);
@@ -1081,6 +1085,7 @@ public class IRBuilder extends ASTVisitor {
         Node child = node.childs.get(0), obj = node.childs.get(1);
         visit(child);
         if (child.type instanceof ArrayTypeDef) {
+            // System.err.println(child.reName);
             addQuad(curlabel, new ArthQuad(MOV, node.reg, new MemOprand(child.reg, null, null)));
             return;
         }

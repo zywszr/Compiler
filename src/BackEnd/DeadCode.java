@@ -54,6 +54,14 @@ public class DeadCode {
         }
     }
 
+    boolean checkUsed(Quad nxt, Quad now) {
+        HashSet <Oprand> used = nxt.getUsed();
+        for (Oprand reg : now.getDefined()) {
+            if (used.contains(reg)) return false;
+        }
+        return true;
+    }
+
     public void work_after_allocate() {
         for (FuncFrame func : lineIR.getFuncs()) {
             for (CFGNode block : func.getCfgList()) {
@@ -83,7 +91,7 @@ public class DeadCode {
                         if (q.nxt != null && q.nxt.op.equals(MOV)) {
                             String rt1 = q.getRt().getCode();
                             String rt2 = q.nxt.getRt().getCode();
-                            if (rt1.equals(rt2)) {
+                            if (rt1.equals(rt2) && checkUsed(q.nxt, q)) {
                                 q.remove();
                             }
                         }
