@@ -576,21 +576,13 @@ public class PreCode {
             "\n" +
             "__buffer.3442:\n" +
             "        resb    1048576\n" +
-            "\n" +
-            "\n" +
-            "SECTION .rodata.str1.1 \n" +
-            "\n" +
-            "L_032:\n" +
-            "        db 25H, 73H, 00H\n" +
-            "\n" +
-            "L_033:\n" +
-            "        db 25H, 6CH, 64H, 00H";
+            "\n";
 
     static public String roData = "\n" +
-            "L_021:\n" +
+            "L_033:\n" +
             "        db 25H, 6CH, 64H, 00H\n" +
             "\n" +
-            "L_022:\n" +
+            "L_032:\n" +
             "        db 25H, 73H, 00H\n" +
             "\n";
 }

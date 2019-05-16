@@ -27,12 +27,8 @@ public class RegisterAllocater {
         actAnalysiser = new ActAnalysiser();
         tmpVarIdx = _tmpVarIdx;
         generalRegs = new ArrayList<>();
-        for (PhyRegOprand reg : RegisterSet.allRegs) {
-            if (reg.getRegName().equals("rsp") || reg.getRegName().equals("rbp")) {
-                continue;
-            }
-            generalRegs.add(reg);
-        }
+        generalRegs.addAll(callerSave);
+        generalRegs.addAll(calleeSave);
         regNum = generalRegs.size();
     }
 
@@ -59,14 +55,9 @@ public class RegisterAllocater {
 
     private void spill() {
         Oprand p = null;
-        int deg = -2;
+        int deg = -1;
         for (Oprand v : spillList) {
-            int curDeg;
-            if (v instanceof PhyRegOprand) {
-                curDeg = -1;
-            } else {
-                curDeg = graph.getDegree(v);
-            }
+            int curDeg = graph.getDegree(v);
             if (curDeg > deg) {
                 p = v;
                 deg = curDeg;

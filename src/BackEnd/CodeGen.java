@@ -111,7 +111,7 @@ public class CodeGen {
         globals.add("string_parseInt");
         globals.add("string_ord");
         globals.add("string_strcat");
-        globals.add("string_Compare");
+        globals.add("string_compare");
 
         externs.add("strcmp");
         externs.add("__sprintf_chk");
@@ -164,7 +164,7 @@ public class CodeGen {
             codes.add(String.format("%-8s db %s", " ", ((Pair <String, Long>) p.getValue()).getKey()));
         }
 
-
+        codes.add(PreCode.roData);
         codes.add("");
 
         for (int i = 0 ; i < codes.size() ; ++ i) {

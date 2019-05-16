@@ -217,16 +217,7 @@ public class IRBuilder extends ASTVisitor {
                     node.reg = getReg(node.reName, false, inLineDepth);
                 }
                 // curfunc.pushVar(node.reName);
-                // string
-                /* if (node.type instanceof StringTypeDef) {
-                    genNewFunc(new ImmOprand(256L), node.reg);
-                    if (node.childs.size() > 0) {
-                        visitChild(node);
-                        genStrcpyFunc(node.reg, node.childs.get(0).reg);
-                    }
-                    break;
-                }*/
-                // bool int class array
+                // string bool int class array
                 if (node.childs.size() > 0) {
                     Node child = node.childs.get(0);
                     if (node.type instanceof BoolTypeDef) {
@@ -816,11 +807,6 @@ public class IRBuilder extends ASTVisitor {
                     break;
             }
         } else if (node.type instanceof StringTypeDef) {
-            /* if (node.reg == null || node.isStrTop) {
-                node.isStrTop = true;
-                node.reg = newTempVar(true);
-                genNewFunc(new ImmOprand(256L), node.reg);
-            }*/
 
             /*if (lson.id.equals("+") && (!lson.isUnique())) {
                 lson.reg = node.reg;
@@ -943,16 +929,14 @@ public class IRBuilder extends ASTVisitor {
     @Override public void visit(NewVarNode node) throws Exception {
         if (node.childs.isEmpty()) {
             node.reg = newTempVar(true);
-            /* if (node.type instanceof StringTypeDef) {
-                genNewFunc(new ImmOprand(256L), node.reg);
-            } else { */
+
                 genNewFunc(new ImmOprand(((OtherTypeDef)node.type).getClassSize() * 8), node.reg);
                 if (funcNode.containsKey(((OtherTypeDef) node.type).getTypeId() + "_" + ((OtherTypeDef) node.type).getTypeId())) {
                     ArrayList<Oprand> params = new ArrayList<>();
                     params.add(node.reg);
                     genFuncQuad(((OtherTypeDef) node.type).getTypeId() + "_" + ((OtherTypeDef) node.type).getTypeId(), params, false, null);
                 }
-            // }
+
             return;
         }
         Node expr = node.childs.get(0), eleType = node.childs.get(1);
